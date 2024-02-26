@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "Dapper.FSharp.Tests": {
-      "commandName": "Project"
-    }
-  }
-}

@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="init.sql" />
+    <Compile Include="SetUpDbContainer.fs" />
+    <Compile Include="Database.fs" />
+    <Compile Include="InsertTests.fs" />
+    <Compile Include="AggregatesTests.fs" />
+    <Compile Include="DeleteTests.fs" />
+    <Compile Include="IssuesTests.fs" />
+    <Compile Include="SelectTests.fs" />
+    <Compile Include="UpdateTests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup />
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FsUnit" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Testcontainers.MySql" Version="3.7.0" />
+  </ItemGroup>
+  
+    <ItemGroup>
+    <ProjectReference Include="..\..\src\Dapper.FSharp.MySQL\Dapper.FSharp.MySQL.fsproj" />
+    <ProjectReference Include="..\Dapper.FSharp.Testing\Dapper.FSharp.Testing.fsproj" />
+  </ItemGroup>
+  
+    <ItemGroup>
+      <PackageReference Update="FSharp.Core" Version="8.0.200" />
+    </ItemGroup>
+
+</Project>

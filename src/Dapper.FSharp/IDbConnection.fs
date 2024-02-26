@@ -1,6 +1,7 @@
-﻿module internal Dapper.FSharp.IDbConnection
+module internal Dapper.FSharp.IDbConnection
 
 open System.Data
+open System.Threading
 open Dapper
 
 type LogFn = string * Map<string, obj> -> unit
@@ -44,10 +45,11 @@ let query4Option<'a,'b,'c,'d> (this:IDbConnection) trans timeout cancellationTok
     if logFunction.IsSome then (query, pars) |> logFunction.Value
     let cmd = CommandDefinition(query, pars, ?transaction = trans, ?commandTimeout = timeout, ?cancellationToken = cancellationToken)
     this.QueryAsync<'a, 'b, 'c, 'd, ('a * 'b option * 'c option * 'd option)>(
-    cmd,
-    (fun a b c d -> a, Reflection.makeOption b, Reflection.makeOption c, Reflection.makeOption d),
-    splitOn)
-    
+        cmd,
+        (fun a b c d -> a, Reflection.makeOption b, Reflection.makeOption c, Reflection.makeOption d),
+        splitOn
+    )
+
 let query5Option<'a,'b,'c,'d,'e> (this:IDbConnection) trans timeout cancellationToken (logFunction:LogFn option) (query, pars, splitOn) =
     if logFunction.IsSome then (query, pars) |> logFunction.Value
     let cmd = CommandDefinition(query, pars, ?transaction = trans, ?commandTimeout = timeout, ?cancellationToken = cancellationToken)
@@ -56,7 +58,11 @@ let query5Option<'a,'b,'c,'d,'e> (this:IDbConnection) trans timeout cancellation
         (fun a b c d e ->
             a, Reflection.makeOption b, Reflection.makeOption c, Reflection.makeOption d, Reflection.makeOption e),
         splitOn)
+
 let execute (this:IDbConnection) trans timeout cancellationToken (logFunction:LogFn option) (query, values) =
-    if logFunction.IsSome then (query, values) |> logFunction.Value
+    if logFunction.IsSome then
+        (query, values)
+        |> logFunction.Value
+
     CommandDefinition(query, values, ?transaction = trans, ?commandTimeout = timeout, ?cancellationToken = cancellationToken)
     |> this.ExecuteAsync
