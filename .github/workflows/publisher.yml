@@ -24,7 +24,9 @@ jobs:
         dotnet-version: '8.0.x'
         
     - name: Install dependencies
-      run: dotnet restore
+      run: |
+          dotnet restore src/Dapper.FSharp/Dapper.FSharp.fsproj
+          dotnet restore src/Dapper.FSharp.MySQL/Dapper.FSharp.MySQL.fsproj
       
     - name: Build
       run: |
