@@ -33,6 +33,7 @@ jobs:
 
     - name: Pack
       run: |
+        dotnet pack --configuration Release src/Dapper.FSharp/Dapper.FSharp.fsproj --output .
         dotnet pack --configuration Release src/Dapper.FSharp.MySQL/Dapper.FSharp.MySQL.fsproj --output .
       
     - name: Prep packages
@@ -40,4 +41,5 @@ jobs:
 
     - name: Publish to GitHub packages
       run: |
+        dotnet nuget push Dapper.FSharp.4*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
         dotnet nuget push Dapper.FSharp.MySQL.4*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate

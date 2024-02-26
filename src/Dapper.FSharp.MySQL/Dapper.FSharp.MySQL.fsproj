@@ -5,9 +5,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <PackageId>Dapper.FSharp.MySQL</PackageId>
-    <Version>4.8.1</Version>
+    <Version>4.8.2</Version>
     <AssemblyVersion>4.8</AssemblyVersion>
-    <FileVersion>4.8.1.0</FileVersion>
+    <FileVersion>4.8.2.0</FileVersion>
     <PackageReleaseNotes>Support for advanced Where syntax #94 #95</PackageReleaseNotes>
     <Authors>Roman Provazník;Jordan Marr;Vladimir Likhatskiy</Authors>
 
