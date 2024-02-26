@@ -29,11 +29,11 @@ jobs:
     - name: Build
       run: |
           dotnet build src/Dapper.FSharp/Dapper.FSharp.fsproj --configuration Release --no-restore
-          dotnet build src/Dapper.FSharp/Dapper.FSharp.MySQL.fsproj --configuration Release --no-restore
+          dotnet build src/Dapper.FSharp.MySQL/Dapper.FSharp.MySQL.fsproj --configuration Release --no-restore
 
     - name: Pack
       run: |
-        dotnet pack --no-build --configuration Release src/Dapper.FSharp/Dapper.FSharp.MySQL.fsproj --output .
+        dotnet pack --no-build --configuration Release src/Dapper.FSharp.MySQL/Dapper.FSharp.MySQL.fsproj --output .
       
     - name: Prep packages
       run: dotnet nuget add source --username p1eXu5 --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/p1eXu5/index.json"
