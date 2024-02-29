@@ -9,7 +9,7 @@ type FieldWhereMetadata = {
     ParameterName : string
 }
 
-let extractWhereParams (meta:FieldWhereMetadata list) =
+let extractWhereParams (meta: FieldWhereMetadata list) =
     let fn (m:FieldWhereMetadata) =
         match m.Key |> snd with
         | Eq p | Ne p | Gt p
@@ -26,14 +26,15 @@ let extractWhereParams (meta:FieldWhereMetadata list) =
     meta
     |> List.choose fn
 
-let normalizeParamName (s:string) = s.Replace(".","_")
 
-let rec getWhereMetadata (meta:FieldWhereMetadata list) (w:Where)  =
+/// Adds to meta list only cases with field references to extract parameters.
+let rec getWhereMetadata (meta: FieldWhereMetadata list) (w: Where)  =
     match w with
-    | Empty -> meta
-    | Expr _ -> meta
-    | Column (field, comp) ->
+    | Where.Empty -> meta
+    | Where.Expr _ -> meta
+    | Where.Column (field, comp) ->
         let parName =
+            // calculate next parameter index
             meta
             |> List.filter (fun x -> System.String.Equals(x.Name, field, System.StringComparison.OrdinalIgnoreCase))
             |> List.length
@@ -42,5 +43,5 @@ let rec getWhereMetadata (meta:FieldWhereMetadata list) (w:Where)  =
 
         { Key = (field, comp); Name = field; ParameterName = parName } :: meta
         |> List.rev
-    | Binary(w1, _, w2) -> [w1;w2] |> List.fold getWhereMetadata meta
-    | Unary(_, w) -> w |> getWhereMetadata meta
+    | Where.Binary(w1, _, w2) -> [w1;w2] |> List.fold getWhereMetadata meta
+    | Where.Unary(_, w) -> w |> getWhereMetadata meta

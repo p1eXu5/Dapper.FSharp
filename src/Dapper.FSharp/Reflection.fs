@@ -28,6 +28,7 @@ let getValuesForFields fields r =
     |> Array.map (fun p -> p.GetValue r)
     |> Array.toList
 
+/// If x is Option obtains it Value or returns x as is.
 let boxify (x : obj) =
     match x with
     | null -> null

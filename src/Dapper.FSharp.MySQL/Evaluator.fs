@@ -3,21 +3,15 @@ module internal Dapper.FSharp.MySQL.Evaluator
 open System.Linq
 open System.Text
 
-let private specialStrings = [ "*" ]
-
-let private inQuotes (s:string) =
-    s.Split('.')
-    |> Array.map (fun x -> if specialStrings.Contains(x) then x else sprintf "`%s`" x)
-    |> String.concat "."
-
 let private safeTableName schema table =
     match schema, table with
-    | None, table -> table |> inQuotes
-    | Some schema, table -> (schema |> inQuotes) + "." + (table |> inQuotes)
+    | None, table -> table |> asterixOrInQuotes
+    | Some schema, table -> (schema |> asterixOrInQuotes) + "." + (table |> asterixOrInQuotes)
 
 let evalBinary = function
     | And -> "AND"
     | Or -> "OR"
+    | Add -> "+"
 
 let evalOrderDirection = function
     | Asc -> "ASC"
@@ -25,11 +19,12 @@ let evalOrderDirection = function
 
 let rec evalWhere (meta:WhereAnalyzer.FieldWhereMetadata list) (w:Where) =
     match w with
-    | Empty -> ""
-    | Expr expr -> expr
-    | Column (field, comp) ->
+    | Where.Empty -> ""
+    | Where.Expr expr -> expr
+    | Where.Column (field, comp) ->
+        // TODO: check case when `where z > ... AND z > ...`
         let fieldMeta = meta |> List.find (fun x -> x.Key = (field,comp))
-        let withField op = sprintf "%s %s @%s" (inQuotes fieldMeta.Name) op fieldMeta.ParameterName
+        let withField op = sprintf "%s %s @%s" (asterixOrInQuotes fieldMeta.Name) op fieldMeta.ParameterName
         match comp with
         | Eq _ -> withField "="
         | Ne _ -> withField "<>"
@@ -43,11 +38,11 @@ let rec evalWhere (meta:WhereAnalyzer.FieldWhereMetadata list) (w:Where) =
         | NotLike _ -> withField "NOT LIKE"
         | IsNull -> sprintf "%s IS NULL" fieldMeta.Name
         | IsNotNull -> sprintf "%s IS NOT NULL" fieldMeta.Name
-    | Binary(w1, comb, w2) ->
+    | Where.Binary(w1, comb, w2) ->
         match evalWhere meta w1, evalWhere meta w2 with
         | "", fq | fq , "" -> fq
         | fq1, fq2 -> sprintf "(%s %s %s)" fq1 (evalBinary comb) fq2
-    | Unary (Not, w) ->
+    | Where.Unary (Not, w) ->
         match evalWhere meta w with
         | "" -> ""
         | v -> sprintf "NOT (%s)" v
@@ -64,12 +59,12 @@ let evalPagination (pag:Pagination) =
     | { Take = Some f; Skip = o } -> sprintf "LIMIT %i, %i" o f
 
 let buildjoinType (meta:JoinAnalyzer.JoinMetadata list) = function
-    | EqualsToColumn eqToCol -> (inQuotes eqToCol)
+    | EqualsToColumn eqToCol -> (asterixOrInQuotes eqToCol)
     | EqualsToConstant con -> meta |> List.find (fun x -> x.Key = con) |> (fun x -> "@" + x.ParameterName)
 
 let buildJoinOnMany meta joinType tableName (joinList: List<string * JoinType>) =
     joinList
-    |> List.map (fun (colName, jt) -> sprintf "%s.%s=%s" (inQuotes tableName) (inQuotes colName) (buildjoinType meta jt))
+    |> List.map (fun (colName, jt) -> sprintf "%s.%s=%s" (asterixOrInQuotes tableName) (asterixOrInQuotes colName) (buildjoinType meta jt))
     |> List.reduce (fun s1 s2 -> s1 + " AND " + s2 )
     |> sprintf " %s JOIN %s ON %s" joinType tableName
 
@@ -89,12 +84,12 @@ let evalAggregates (ags:Aggregate list) =
         | _ -> failwith "Aggregate column format should be either <table>.<column> or <column>"
 
     ags |> List.map (function
-    | Count (column,alias) -> comparableName column alias, sprintf "COUNT(%s) AS %s" (inQuotes column) (inQuotes alias)
-    | CountDistinct (column,alias) -> comparableName column alias, sprintf "COUNT(DISTINCT %s) AS %s" (inQuotes column) (inQuotes alias)
-    | Avg (column,alias) -> comparableName column alias, sprintf "AVG(%s) AS %s" (inQuotes column) (inQuotes alias)
-    | Sum (column,alias) -> comparableName column alias, sprintf "SUM(%s) AS %s" (inQuotes column) (inQuotes alias)
-    | Min (column,alias) -> comparableName column alias, sprintf "MIN(%s) AS %s" (inQuotes column) (inQuotes alias)
-    | Max (column,alias) -> comparableName column alias, sprintf "MAX(%s) AS %s" (inQuotes column) (inQuotes alias)
+    | Count (column,alias) -> comparableName column alias, sprintf "COUNT(%s) AS %s" (asterixOrInQuotes column) (asterixOrInQuotes alias)
+    | CountDistinct (column,alias) -> comparableName column alias, sprintf "COUNT(DISTINCT %s) AS %s" (asterixOrInQuotes column) (asterixOrInQuotes alias)
+    | Avg (column,alias) -> comparableName column alias, sprintf "AVG(%s) AS %s" (asterixOrInQuotes column) (asterixOrInQuotes alias)
+    | Sum (column,alias) -> comparableName column alias, sprintf "SUM(%s) AS %s" (asterixOrInQuotes column) (asterixOrInQuotes alias)
+    | Min (column,alias) -> comparableName column alias, sprintf "MIN(%s) AS %s" (asterixOrInQuotes column) (asterixOrInQuotes alias)
+    | Max (column,alias) -> comparableName column alias, sprintf "MAX(%s) AS %s" (asterixOrInQuotes column) (asterixOrInQuotes alias)
     )
 
 let replaceFieldWithAggregate (aggr:(string * string) list) (field:string) =
@@ -105,11 +100,11 @@ let replaceFieldWithAggregate (aggr:(string * string) list) (field:string) =
         | [| _ |], [| _; c |] when aggrColumn = c -> Some replace // aggrColumn is <column> but field is <table>.<column>
         | _ when aggrColumn = field -> Some replace
         | _ -> None)
-    |> Option.defaultValue (inQuotes field)
+    |> Option.defaultValue (asterixOrInQuotes field)
 
 let evalGroupBy (cols:string list) =
     cols
-    |> List.map inQuotes
+    |> List.map asterixOrInQuotes
     |> String.concat ", "
 
 let evalSelectQuery fields meta joinMeta (q:SelectQuery) =
@@ -140,7 +135,7 @@ let evalSelectQuery fields meta joinMeta (q:SelectQuery) =
     sb.ToString()
 
 let evalInsertIgnoreQuery fields _ (q:InsertQuery<_>) =
-    let fieldNames = fields |> List.map inQuotes |> String.concat ", " |> sprintf "(%s)"
+    let fieldNames = fields |> List.map asterixOrInQuotes |> String.concat ", " |> sprintf "(%s)"
     let values =
         q.Values
         |> List.mapi (fun i _ -> fields |> List.map (fun field -> sprintf "@%s%i" field i ) |> String.concat ", " |> sprintf "(%s)")
@@ -148,17 +143,23 @@ let evalInsertIgnoreQuery fields _ (q:InsertQuery<_>) =
     sprintf "INSERT IGNORE INTO %s %s VALUES %s" (safeTableName q.Schema q.Table) fieldNames values
 
 let evalInsertQuery fields _ (q:InsertQuery<_>) =
-    let fieldNames = fields |> List.map inQuotes |> String.concat ", " |> sprintf "(%s)"
+    let fieldNames = fields |> List.map asterixOrInQuotes |> String.concat ", " |> sprintf "(%s)"
     let values =
         q.Values
         |> List.mapi (fun i _ -> fields |> List.map (fun field -> sprintf "@%s%i" field i ) |> String.concat ", " |> sprintf "(%s)")
         |> String.concat ", "
     sprintf "INSERT INTO %s %s VALUES %s" (safeTableName q.Schema q.Table) fieldNames values
 
-let evalUpdateQuery fields _ meta (q:UpdateQuery<'a>) =
+let evalUpdateQuery (fieldsChoice: Choice<string list, UpdateSetSection>) meta (q:UpdateQuery<'a>) =
     // basic query
-    let pairs = fields |> List.map (fun x -> sprintf "%s=@%s" (inQuotes x) x) |> String.concat ", "
-    let baseQuery = sprintf "UPDATE %s SET %s" (safeTableName q.Schema q.Table) pairs
+    let fieldAssignments =
+        match fieldsChoice with
+        | Choice1Of2 fields ->
+            fields |> List.map (fun x -> sprintf "%s=@%s" (asterixOrInQuotes x) x) |> String.concat ", "
+        | Choice2Of2 setExprMetaList ->
+            setExprMetaList.SqlScript
+
+    let baseQuery = sprintf "UPDATE %s SET %s" (safeTableName q.Schema q.Table) fieldAssignments
     let sb = StringBuilder(baseQuery)
     // where
     let where = evalWhere meta q.Where

@@ -5,9 +5,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <PackageId>Dapper.FSharp.MySQL</PackageId>
-    <Version>4.8.3</Version>
+    <Version>4.8.4</Version>
     <AssemblyVersion>4.8</AssemblyVersion>
-    <FileVersion>4.8.3.0</FileVersion>
+    <FileVersion>4.8.4.0</FileVersion>
     <PackageReleaseNotes>Support for advanced Where syntax #94 #95</PackageReleaseNotes>
     <Authors>Roman Provazník;Jordan Marr;Vladimir Likhatskiy</Authors>
 
@@ -39,15 +39,21 @@
 
   <ItemGroup>
     <Compile Include="Domain.fs" />
-    <Compile Include="LinqExpressionVisitors.fs" />
-    <Compile Include="Builders.fs" />
+    <Compile Include="Builders\LinqExpressionVisitors.fs" />
+    <Compile Include="Builders\Types.fs" />
+    <Compile Include="Builders\SelectExpressionBuilder.fs" />
+    <Compile Include="Builders\DeleteExpressionBuilder.fs" />
+    <Compile Include="Builders\InsertExpressionBuilder.fs" />
+    <Compile Include="Builders\UpdateExpressionBuilder.fs" />
+    <Compile Include="Builders\Builders.fs" />
     <Compile Include="JoinAnalyzer.fs" />
-    <Compile Include="OptionTypes.fs" />
     <Compile Include="WhereAnalyzer.fs" />
+    <Compile Include="UpdateSetSection.fs" />
     <Compile Include="Evaluator.fs" />
     <Compile Include="GenericDeconstructor.fs" />
     <Compile Include="Deconstructor.fs" />
     <Compile Include="IDbConnection.fs" />
+    <Compile Include="OptionTypes.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,4 +64,7 @@
     <PackageReference Update="FSharp.Core" Version="8.0.200" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
+  </ItemGroup>
 </Project>

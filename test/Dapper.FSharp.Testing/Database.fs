@@ -50,6 +50,7 @@ module Persons =
         let generate () =
             generateWithPosition (faker.Random.Int(1, 100))
 
+        /// Generates Persons.View with Position set from 1 to 10
         let generateMany (count: int) =
             if count < 1 then []
             else List.init count (fun i -> generateWithPosition (i + 1))

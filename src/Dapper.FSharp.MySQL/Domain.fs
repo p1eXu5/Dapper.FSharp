@@ -24,10 +24,12 @@ type ColumnComparison =
 type BinaryOperation =
     | And
     | Or
+    | Add
 
 type UnaryOperation =
     | Not
 
+[<RequireQualifiedAccess>]
 type Where =
     | Empty
     | Column of string * ColumnComparison
@@ -37,6 +39,12 @@ type Where =
     static member (+) (a, b) = Binary(a, And, b)
     static member (*) (a, b) = Binary(a, Or, b)
     static member (!!) a = Unary (Not, a)
+
+[<RequireQualifiedAccess>]
+type SetExpr =
+    | Column of columnName: string
+    | Binary of SetExpr * BinaryOperation * SetExpr
+    | Value of value: obj
 
 type Pagination = {
     Skip : int
@@ -83,17 +91,29 @@ type InsertQuery<'a> = {
     Values : 'a list
 }
 
-type UpdateQuery<'a> = {
-    Schema : string option
-    Table : string
-    Value : 'a option
-    SetColumns: (string * obj) list
-    Fields : string list
-    Where : Where
-}
+type UpdateQuery<'a> =
+    {
+        Schema : string option
+        Table : string
+        Value : 'a option
+        SetColumns: (string * SetExpr) list
+        Fields : string list
+        Where : Where
+    }
+    with
+        static member Default<'T>() =
+            {
+                Schema = None
+                Table = ""
+                Value = None
+                SetColumns = []
+                Fields = []
+                Where = Where.Empty
+            } : UpdateQuery<'T>
 
 type DeleteQuery = {
     Schema : string option
     Table : string
     Where : Where
 }
+

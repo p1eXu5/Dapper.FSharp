@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Testcontainers.MySql;
+﻿using Testcontainers.MySql;
 
 namespace TestProject1;
 
@@ -30,11 +25,8 @@ public class SetUpDbContainer
 
     private async Task<MySqlContainer> UpMySqlContainer()
     {
-        var uri = new DirectoryInfo("D:\\Programming\\FSharp\\_open_source\\Dapper.FSharp\\tests\\Dapper.FSharp.MySQL.Tests\\init.sql");
-        var fi = new FileInfo(uri.FullName);
         var container =
             new MySqlBuilder()
-                .WithResourceMapping(fi, "/docker-entrypoint-initdb.d/")
                 .WithDatabase("fsharp_dapper_test_db")
                 .WithUsername("admin")
                 .WithPassword("admin")

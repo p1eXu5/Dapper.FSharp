@@ -9,6 +9,7 @@ open Dapper.FSharp.MySQL
 open Dapper.FSharp.Testing.Database
 open Dapper.FSharp.MySQL.Tests.Database
 open MySql.Data.MySqlClient
+open FsUnit
 
 [<NonParallelizable>]
 module UpdateTests =
@@ -30,7 +31,7 @@ module UpdateTests =
         }
     
     [<Test>]
-    let ``updates single records``() = 
+    let ``01: updates single records``() = 
         task {
             do! Persons.init conn
             let rs = Persons.View.generateMany 10
@@ -57,7 +58,7 @@ module UpdateTests =
 
 #if MySqlData_lt_8_0_33
     [<Test>]
-    let ``cancellation works``() = 
+    let ``02: cancellation works``() = 
         task {
             do! Persons.init conn
             let rs = Persons.View.generateMany 10
@@ -82,7 +83,7 @@ module UpdateTests =
         }
 #else
     [<Test>]
-    let ``cancellation does not work``() = 
+    let ``02: cancellation does not work``() = 
         task {
             do! Persons.init conn
             let rs = Persons.View.generateMany 10
@@ -108,7 +109,7 @@ module UpdateTests =
 #endif
 
     [<Test>]
-    let ``updates option field to None``() = 
+    let ``03: updates option field to None``() = 
         task {
             do! Persons.init conn
             let rs = Persons.View.generateMany 10 |> List.map (fun p -> { p with DateOfBirth = Some DateTime.UtcNow })
@@ -134,7 +135,7 @@ module UpdateTests =
         }
 
     [<Test>]
-    let ``updates more records``() = 
+    let ``04: updates more records``() = 
         task {
             do! Persons.init conn
             let rs = Persons.View.generateMany 10
@@ -160,7 +161,7 @@ module UpdateTests =
         }
     
     [<Test>]
-    let ``update with 2 included fields``() = 
+    let ``05: update with 2 included fields``() = 
         task {
             let person = 
                 {
@@ -180,4 +181,30 @@ module UpdateTests =
                 }
                 
             ClassicAssert.AreEqual(query.Fields, [nameof(person.FirstName); nameof(person.LastName)])
+        }
+
+    [<Test>]
+    let ``04: updates more records with set expression``() = 
+        task {
+            do! Persons.init conn
+            let rs = Persons.View.generateMany 10
+            let! _ =
+                insert {
+                    into personsView
+                    values rs
+                } |> conn.InsertAsync
+            let! _ =
+                update {
+                    for p in personsView do
+                    setColumn p.Position (p.Position + 1)
+                    where (p.Position > 5)
+                } |> conn.UpdateAsync
+
+            let! fromDb =
+                select {
+                    for p in personsView do
+                    selectAll
+                } |> conn.SelectAsync<Persons.View>
+
+            fromDb |> Seq.map _.Position |> should equivalent [1; 2; 3; 4; 5; 7; 8; 9; 10; 11] 
         }

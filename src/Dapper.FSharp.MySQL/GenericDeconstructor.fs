@@ -87,24 +87,35 @@ let insert evalInsertQuery (q:InsertQuery<'a>) =
         | fields -> fields
     _insert evalInsertQuery q fields []
 
-let private _update evalUpdateQuery (q:UpdateQuery<_>) fields (outputFields:string list) =
-    let values = 
-        match q.Value with
-        | Some value -> Reflection.getValuesForFields fields value |> List.map Reflection.boxify
-        | None -> q.SetColumns |> List.map (snd >> Reflection.boxify)
-    // extract metadata
-    let meta = WhereAnalyzer.getWhereMetadata [] q.Where
-    let pars = (WhereAnalyzer.extractWhereParams meta) @ (List.zip fields values) |> Map.ofList
-    let query : string = evalUpdateQuery fields outputFields meta q
-    query, pars
-    
-let update<'a> evalUpdateQuery (q:UpdateQuery<'a>) =
+let private _update evalUpdateQuery (q:UpdateQuery<_>) fields =
+    let whereMeta = WhereAnalyzer.getWhereMetadata [] q.Where
+    match q.Value with
+    | Some value ->
+        let parameters =
+            Reflection.getValuesForFields fields value
+            |> List.map Reflection.boxify
+            |> List.zip fields
+            |> List.append (WhereAnalyzer.extractWhereParams whereMeta)
+            |> Map.ofList
+
+        let query = evalUpdateQuery (fields |> Choice1Of2) whereMeta q
+        query, parameters
+    | None ->
+        let setExprMetaList = UpdateSetSection.build q.SetColumns
+        let parameters =
+            setExprMetaList.Parameters
+            |> List.append (WhereAnalyzer.extractWhereParams whereMeta)
+            |> Map.ofList
+        let query = evalUpdateQuery (setExprMetaList |> Choice2Of2) whereMeta q
+        query, parameters
+
+let update<'a> evalUpdateQuery (q:UpdateQuery<'a>) : string * Map<string, obj>=
     let fields =
         match q.Value, q.Fields, q.SetColumns with
         | Some _, [], _ -> typeof<'a> |> Reflection.getFields
         | Some _, fields, _ -> fields
         | None, _, setCols -> setCols |> List.map fst
-    _update evalUpdateQuery q fields [] 
+    _update evalUpdateQuery q fields
 
 let private _delete evalDeleteQuery (q:DeleteQuery) outputFields =
     let meta = WhereAnalyzer.getWhereMetadata [] q.Where

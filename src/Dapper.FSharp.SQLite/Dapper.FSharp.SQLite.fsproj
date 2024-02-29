@@ -5,9 +5,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     
     <PackageId>Dapper.FSharp.SQLite</PackageId>
-    <Version>4.8.3</Version>
+    <Version>4.8.4</Version>
     <AssemblyVersion>4.8</AssemblyVersion>
-    <FileVersion>4.8.3.0</FileVersion>
+    <FileVersion>4.8.4.0</FileVersion>
     <PackageReleaseNotes>Support for advanced Where syntax #94 #95</PackageReleaseNotes>
     <Authors>Roman Provazník;Jordan Marr;Vladimir Likhatskiy</Authors>
 

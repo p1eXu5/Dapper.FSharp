@@ -202,7 +202,7 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
         | Lambda x -> visit x.Body
         | Not x -> 
             let operand = visit x.Operand
-            Unary (Not, operand)
+            Where.Unary (Not, operand)
         | MethodCall m when m.Method.Name = "Invoke" ->
             // Handle tuples
             visit m.Object
@@ -211,34 +211,34 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
             match m.Arguments.[0], m.Arguments.[1] with
             | Property p, MethodCall lst ->
                 let lstValues = unwrapListExpr ([], lst)                
-                Column (qualifyColumn p, comparisonType lstValues)
+                Where.Column (qualifyColumn p, comparisonType lstValues)
             | Property p, Value value -> 
                 let lstValues = (value :?> System.Collections.IEnumerable) |> Seq.cast<obj> |> Seq.toList
-                Column (qualifyColumn p, comparisonType lstValues)
+                Where.Column (qualifyColumn p, comparisonType lstValues)
             | _ -> notImpl()
         | MethodCall m when List.contains m.Method.Name [ "like"; "notLike" ] ->
             match m.Arguments.[0], m.Arguments.[1] with
             | Property p, Value value -> 
                 let pattern = string value
                 match m.Method.Name with
-                | "like" -> Column ((qualifyColumn p), (Like pattern))
-                | _ -> Column ((qualifyColumn p), (NotLike pattern))
+                | "like" -> Where.Column ((qualifyColumn p), (Like pattern))
+                | _ -> Where.Column ((qualifyColumn p), (NotLike pattern))
             | _ -> notImpl()
         | MethodCall m when m.Method.Name = "isNullValue" || m.Method.Name = "isNotNullValue" ->
             match m.Arguments.[0] with
             | Property p -> 
                 if m.Method.Name = "isNullValue" 
-                then Column (qualifyColumn p, ColumnComparison.IsNull)
-                else Column (qualifyColumn p, ColumnComparison.IsNotNull)
+                then Where.Column (qualifyColumn p, ColumnComparison.IsNull)
+                else Where.Column (qualifyColumn p, ColumnComparison.IsNotNull)
             | _ -> notImpl()
         | BinaryAnd x ->
             let lt = visit x.Left
             let rt = visit x.Right
-            Binary (lt, And, rt)
+            Where.Binary (lt, And, rt)
         | BinaryOr x -> 
             let lt = visit x.Left
             let rt = visit x.Right
-            Binary (lt, Or, rt)
+            Where.Binary (lt, Or, rt)
         | BinaryCompare x ->
             match x.Left, x.Right with            
             | Property p1, Property p2 ->
@@ -246,12 +246,12 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
                 let lt = qualifyColumn p1
                 let cp = getComparison exp.NodeType
                 let rt = qualifyColumn p2
-                Expr (sprintf "%s %s %s" lt cp rt)
+                Where.Expr (sprintf "%s %s %s" lt cp rt)
             | Property p, Value value
             | Value value, Property p ->
                 // Handle column to value comparisons
                 let columnComparison = getColumnComparison(exp.NodeType, value)
-                Column (qualifyColumn p, columnComparison)
+                Where.Column (qualifyColumn p, columnComparison)
             | Value v1, Value v2 ->
                 // Not implemented because I didn't want to embed logic to properly format strings, dates, etc.
                 // This can be easily added later if it is implemented in Dapper.FSharp.
@@ -260,6 +260,29 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
                 notImpl()
         | _ ->
             notImpl()
+
+    visit (filter :> Expression)
+
+
+let visitSetExpr<'T, 'V> (filter: Expression<Func<'T, 'V>>) (qualifyColumn: MemberInfo -> string) =
+    let rec visit (exp: Expression) : SetExpr =
+        match exp with
+        | Lambda x -> visit x.Body
+        | Value v -> SetExpr.Value v
+        | MethodCall m when m.Method.Name = "Invoke" ->
+            // Handle tuples
+            visit m.Object
+        | Member m ->
+            m.Member |> qualifyColumn |> SetExpr.Column
+        | Binary x ->
+            let lt = visit x.Left
+            let rt = visit x.Right
+            match x.NodeType with
+            | ExpressionType.Add ->
+                SetExpr.Binary (lt, Add, rt)
+            | _ -> notImplMsg("Other operations for 'setColumn' expression are not implemented yet.")
+        | _ ->
+            notImplMsg($"Could not parsed 'setColumn' expression of type {exp.NodeType}.")
 
     visit (filter :> Expression)
 
