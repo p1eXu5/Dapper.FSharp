@@ -1,4 +1,4 @@
-﻿module internal Dapper.FSharp.MySQL.LinqExpressionVisitors
+module internal Dapper.FSharp.MySQL.LinqExpressionVisitors
 
 open System.Linq.Expressions
 open System
@@ -215,7 +215,7 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
             | Property p, Value value -> 
                 let lstValues = (value :?> System.Collections.IEnumerable) |> Seq.cast<obj> |> Seq.toList
                 Where.Column (qualifyColumn p, comparisonType lstValues)
-            | _ -> notImpl()
+            | _ -> notImplMsg($"Could not parsed 'where' expression of type {exp.NodeType}.")
         | MethodCall m when List.contains m.Method.Name [ "like"; "notLike" ] ->
             match m.Arguments.[0], m.Arguments.[1] with
             | Property p, Value value -> 
@@ -223,14 +223,14 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
                 match m.Method.Name with
                 | "like" -> Where.Column ((qualifyColumn p), (Like pattern))
                 | _ -> Where.Column ((qualifyColumn p), (NotLike pattern))
-            | _ -> notImpl()
+            | _ -> notImplMsg($"Could not parsed 'where' expression of type {exp.NodeType}.")
         | MethodCall m when m.Method.Name = "isNullValue" || m.Method.Name = "isNotNullValue" ->
             match m.Arguments.[0] with
             | Property p -> 
                 if m.Method.Name = "isNullValue" 
                 then Where.Column (qualifyColumn p, ColumnComparison.IsNull)
                 else Where.Column (qualifyColumn p, ColumnComparison.IsNotNull)
-            | _ -> notImpl()
+            | _ -> notImplMsg($"Could not parsed 'where' expression of type {exp.NodeType}.")
         | BinaryAnd x ->
             let lt = visit x.Left
             let rt = visit x.Right
@@ -257,12 +257,11 @@ let visitWhere<'T> (filter: Expression<Func<'T, bool>>) (qualifyColumn: MemberIn
                 // This can be easily added later if it is implemented in Dapper.FSharp.
                 notImplMsg("Value to value comparisons are not currently supported. Ex: where (1 = 1)")
             | _ ->
-                notImpl()
+                notImplMsg($"Could not parsed 'where' expression of type {exp.NodeType}.")
         | _ ->
-            notImpl()
+            notImplMsg($"Could not parsed 'where' expression of type {exp.NodeType}.")
 
     visit (filter :> Expression)
-
 
 let visitSetExpr<'T, 'V> (filter: Expression<Func<'T, 'V>>) (qualifyColumn: MemberInfo -> string) =
     let rec visit (exp: Expression) : SetExpr =
@@ -280,7 +279,19 @@ let visitSetExpr<'T, 'V> (filter: Expression<Func<'T, 'V>>) (qualifyColumn: Memb
             match x.NodeType with
             | ExpressionType.Add ->
                 SetExpr.Binary (lt, Add, rt)
-            | _ -> notImplMsg("Other operations for 'setColumn' expression are not implemented yet.")
+            | ExpressionType.Subtract ->
+                SetExpr.Binary (lt, Sub, rt)
+            | ExpressionType.Multiply ->
+                SetExpr.Binary (lt, Mul, rt)
+            | ExpressionType.Divide ->
+                SetExpr.Binary (lt, Div, rt)
+            | _ -> notImplMsg($"Could not parsed 'setColumn' expression of type {exp.NodeType}.")
+        | Unary x ->
+            let t = visit x.Operand
+            match x.NodeType with
+            | ExpressionType.Negate ->
+                SetExpr.Unary (Sub, t)
+            | _ -> notImplMsg($"Could not parsed 'setColumn' expression of type {exp.NodeType}.")
         | _ ->
             notImplMsg($"Could not parsed 'setColumn' expression of type {exp.NodeType}.")
 
@@ -301,7 +312,7 @@ let visitGroupBy<'T, 'Prop> (propertySelector: Expression<Func<'T, 'Prop>>) (qua
             // Handle groupBy for a single column
             let column = qualifyColumn m.Member
             [column]
-        | _ -> notImpl()
+        | _ -> notImplMsg($"Could not parsed 'groupBy' expression of type {exp.NodeType}.")
 
     visit (propertySelector :> Expression)
 
@@ -327,7 +338,7 @@ let visitJoin<'T, 'Prop> (propertySelector: Expression<Func<'T, 'Prop>>) =
         | Property mi -> [ MI mi ]
         | Constant c -> 
             [ Const c.Value ]
-        | _ -> notImpl()
+        | _ -> notImplMsg($"Could not parsed 'join' expression of type {exp.NodeType}.")
 
     visit (propertySelector :> Expression)
 
@@ -344,6 +355,6 @@ let visitPropertySelector<'T, 'Prop> (propertySelector: Expression<Func<'T, 'Pro
             then visit m.Expression
             else m.Member
         | Property mi -> mi
-        | _ -> notImpl()
+        | _ -> notImplMsg($"Could not parsed expression of type {exp.NodeType}.")
 
     visit (propertySelector :> Expression)

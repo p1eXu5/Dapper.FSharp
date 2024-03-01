@@ -1,4 +1,4 @@
-﻿namespace Dapper.FSharp.MySQL.UnitTests.Builders
+namespace Dapper.FSharp.MySQL.UnitTests.Builders
 
 open NUnit.Framework
 open Dapper.FSharp.MySQL
@@ -40,10 +40,43 @@ type UpdateExpressionBuilderTestCases() =
             TestCaseData(
                 update {
                     for f in fooTable do
+                    setColumn f.index (f.index - 1)
+                },
+                { defaultUpdateQuery with SetColumns = [("index", SetExpr.Binary (SetExpr.Column "index", Sub, SetExpr.Value 1))] }
+            ).SetName("03: setColumn index (index - 1)")
+
+            TestCaseData(
+                update {
+                    for f in fooTable do
+                    setColumn f.index (-f.index)
+                },
+                { defaultUpdateQuery with SetColumns = [("index", SetExpr.Unary (Sub, SetExpr.Column "index"))] }
+            ).SetName("04: setColumn index (-index)")
+
+            TestCaseData(
+                update {
+                    for f in fooTable do
+                    setColumn f.index (-f.index - 1)
+                },
+                { defaultUpdateQuery with SetColumns = [("index", SetExpr.Binary ((SetExpr.Unary(Sub, SetExpr.Column "index")), Sub, SetExpr.Value 1))] }
+            ).SetName("05: setColumn index (-index - 1)")
+
+            TestCaseData(
+                update {
+                    for f in fooTable do
                     setColumn f.index f.index
                 },
                 { defaultUpdateQuery with SetColumns = [("index", SetExpr.Column "index")] }
-            ).SetName("03: setColumn index index")
+            ).SetName("06: setColumn index index")
+
+            TestCaseData(
+                update {
+                    for f in fooTable do
+                    setColumn f.index 2
+                    setColumn f.bar "xyzzy2"
+                },
+                { defaultUpdateQuery with SetColumns = [("index", SetExpr.Value 2); ("bar", SetExpr.Value "xyzzy2")] }
+            ).SetName("07: two setColumns with value")
 
             TestCaseData(
                 update {
@@ -51,7 +84,7 @@ type UpdateExpressionBuilderTestCases() =
                     set Foo.Sample1
                 },
                 { defaultUpdateQuery with Value = Foo.Sample1 |> Some }
-            ).SetName("04: set <foo_instance> -> sets Value to passed instance ")
+            ).SetName("08: set <foo_instance> -> sets Value to passed instance ")
 
             TestCaseData(
                 update {
@@ -60,7 +93,7 @@ type UpdateExpressionBuilderTestCases() =
                     set Foo.Sample2
                 },
                 { defaultUpdateQuery with Value = Foo.Sample2 |> Some }
-            ).SetName("05: double set <foo_instance> -> sets Value to passed second instance")
+            ).SetName("09: double set <foo_instance> -> sets Value to passed second instance")
 
             TestCaseData(
                 update {
@@ -68,7 +101,7 @@ type UpdateExpressionBuilderTestCases() =
                     where (f.index > 2)
                 },
                 { defaultUpdateQuery with Where = Where.Column ("Foo.index", ColumnComparison.Gt 2) }
-            ).SetName("06: for and where clauses -> sets Where")
+            ).SetName("10: for and where clauses -> sets Where")
         }
 
 module UpdateExpressionBuilderTests =

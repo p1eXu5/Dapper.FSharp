@@ -184,7 +184,7 @@ module UpdateTests =
         }
 
     [<Test>]
-    let ``04: updates more records with set expression``() = 
+    let ``06: updates more records with (p.Position + 1) set expression``() = 
         task {
             do! Persons.init conn
             let rs = Persons.View.generateMany 10
@@ -207,4 +207,54 @@ module UpdateTests =
                 } |> conn.SelectAsync<Persons.View>
 
             fromDb |> Seq.map _.Position |> should equivalent [1; 2; 3; 4; 5; 7; 8; 9; 10; 11] 
+        }
+
+    [<Test>]
+    let ``07: updates more records with (-p.Position - 1) set expression``() = 
+        task {
+            do! Persons.init conn
+            let rs = Persons.View.generateMany 10
+            let! _ =
+                insert {
+                    into personsView
+                    values rs
+                } |> conn.InsertAsync
+            let! _ =
+                update {
+                    for p in personsView do
+                    setColumn p.Position (-p.Position - 1)
+                } |> conn.UpdateAsync
+
+            let! fromDb =
+                select {
+                    for p in personsView do
+                    selectAll
+                } |> conn.SelectAsync<Persons.View>
+
+            fromDb |> Seq.map _.Position |> should equivalent [-2; -3; -4; -5; -6; -7; -8; -9; -10; -11] 
+        }
+
+    [<Test>]
+    let ``08: updates more records with (-p.Position) set expression``() = 
+        task {
+            do! Persons.init conn
+            let rs = Persons.View.generateMany 10 |> List.map (fun p -> { p with Position = -p.Position })
+            let! _ =
+                insert {
+                    into personsView
+                    values rs
+                } |> conn.InsertAsync
+            let! _ =
+                update {
+                    for p in personsView do
+                    setColumn p.Position (-p.Position)
+                } |> conn.UpdateAsync
+
+            let! fromDb =
+                select {
+                    for p in personsView do
+                    selectAll
+                } |> conn.SelectAsync<Persons.View>
+
+            fromDb |> Seq.map _.Position |> should equivalent [1; 2; 3; 4; 5; 6; 7; 8; 9; 10] 
         }

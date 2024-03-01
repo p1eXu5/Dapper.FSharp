@@ -1,4 +1,4 @@
-﻿[<AutoOpen>]
+[<AutoOpen>]
 module Dapper.FSharp.MySQL.Domain
 
 type OrderDirection =
@@ -25,6 +25,9 @@ type BinaryOperation =
     | And
     | Or
     | Add
+    | Sub
+    | Mul
+    | Div
 
 type UnaryOperation =
     | Not
@@ -44,6 +47,7 @@ type Where =
 type SetExpr =
     | Column of columnName: string
     | Binary of SetExpr * BinaryOperation * SetExpr
+    | Unary of BinaryOperation * SetExpr
     | Value of value: obj
 
 type Pagination = {

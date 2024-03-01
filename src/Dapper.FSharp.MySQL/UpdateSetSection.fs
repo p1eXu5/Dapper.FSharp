@@ -1,4 +1,4 @@
-﻿namespace Dapper.FSharp.MySQL
+namespace Dapper.FSharp.MySQL
 
 open System.Text
 open Dapper.FSharp
@@ -21,17 +21,30 @@ module internal UpdateSetSection =
                     sb.Append('@').Append(parameterName)
                     , (parameterName, v |> Reflection.boxify) :: parameters
                 )
+
             | SetExpr.Column columnName ->
                 (sb.AppendFormat("`{0}`", columnName), parameters)
+
             | SetExpr.Binary (e1, op, e2) ->
                 parse setColumnName sb parameters e1
                 |> fun (sb, parameters) ->
                     match op with
                     | BinaryOperation.Add ->
                         sb.Append(" + "), parameters
-                    | _ -> notImpl ()
+                    | BinaryOperation.Sub ->
+                        sb.Append(" - "), parameters
+                    | _ -> notImplMsg ($"Cannot build set expresion with operation {op}")
                 |> fun (sb, parameters) ->
                     parse setColumnName sb parameters e2
+
+            | SetExpr.Unary (op, expr) ->
+                match op with
+                | BinaryOperation.Sub ->
+                    sb.Append("-"), parameters
+                | _ -> notImplMsg ($"Cannot build set expresion with operation {op}")
+                |> fun (sb, parameters) ->
+                    parse setColumnName sb parameters expr
+
 
         if setColumnList.Length = 0 then
             { SqlScript = ""; Parameters = [] }
