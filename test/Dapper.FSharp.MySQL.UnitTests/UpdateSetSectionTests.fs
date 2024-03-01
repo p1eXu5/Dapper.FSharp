@@ -22,6 +22,11 @@ type UpdateSetSectionCases () =
                 [("index", SetExpr.Binary ((SetExpr.Unary(Sub, SetExpr.Column "index")), Sub, SetExpr.Value 1))],
                 { SqlScript = "`index` = -`index` - @Set_index0"; Parameters = ["Set_index0", 1 |> box] }
             ).SetName("03: (-index - 1) expresion")
+
+            TestCaseData(
+                [("index", SetExpr.Unary(Sub, SetExpr.Column "index"))],
+                { SqlScript = "`index` = -`index`"; Parameters = [] }
+            ).SetName("04: (-index) expresion")
         }
 
 
