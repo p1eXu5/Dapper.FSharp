@@ -1,15 +1,25 @@
-﻿module Dapper.FSharp.Tests.SQLite.Database
+module Dapper.FSharp.IntegrationTests.SQLite.Database
 
-open Dapper.FSharp
-open Dapper.FSharp.Tests.Database
-open Dapper.FSharp.Tests.Extensions
+open System
+open System.IO
 open System.Data
 open Microsoft.Data.Sqlite
-open Microsoft.Extensions.Configuration
+open Dapper.FSharp
+open Dapper.FSharp.Testing.Database
+open Dapper.FSharp.Testing.Extensions
+open System.Reflection
+
+let private dbFileName = "test.db"
+
+let mutable private connectionString = Unchecked.defaultof<string>
 
 let getConnection () =
-    let conf = ConfigurationBuilder().AddJsonFile("settings.json").Build()
-    new SqliteConnection(conf.["sqliteConnectionString"])
+    if String.IsNullOrWhiteSpace(connectionString) then
+        let dataSource = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dbFileName)
+        if File.Exists(dataSource) then
+            File.Delete(dataSource)
+        connectionString <- $"Data Source=%s{dataSource};"
+    new SqliteConnection(connectionString)
 
 let mutable isAlreadyInitialized = false
 

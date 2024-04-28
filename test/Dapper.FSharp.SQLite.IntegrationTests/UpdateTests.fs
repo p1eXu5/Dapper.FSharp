@@ -1,11 +1,11 @@
-﻿module Dapper.FSharp.Tests.SQLite.UpdateTests
+﻿module Dapper.FSharp.IntegrationTests.SQLite.UpdateTests
 
 open System
 open System.Threading
 open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
-open Dapper.FSharp.Tests.Database
+open Dapper.FSharp.Testing.Database
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -21,7 +21,7 @@ type UpdateTests () =
     member _.``Updates single records``() = 
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -47,7 +47,7 @@ type UpdateTests () =
     member _.``Cancellation works``() = 
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -72,7 +72,7 @@ type UpdateTests () =
     member _.``Updates option field to None``() = 
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10 |> List.map (fun p -> { p with DateOfBirth = Some DateTime.UtcNow })
+            let rs = Persons.View.generateMany 10 |> List.map (fun p -> { p with DateOfBirth = Some DateTime.UtcNow })
             let! _ =
                 insert {
                     into personsView
@@ -98,7 +98,7 @@ type UpdateTests () =
     member _.``Updates more records``() = 
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView

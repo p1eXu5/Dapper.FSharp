@@ -1,11 +1,11 @@
-﻿module Dapper.FSharp.Tests.SQLite.InsertTests
+module Dapper.FSharp.IntegrationTests.SQLite.InsertTests
 
 open System
 open System.Threading
 open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
-open Dapper.FSharp.Tests.Database
+open Dapper.FSharp.Testing.Database
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -21,7 +21,7 @@ type InsertTests () =
     member _.``Inserts new record``() = 
         task {
             do! init.InitPersons()
-            let r = Persons.View.generate 1 |> List.head
+            let r = Persons.View.generate ()
             let! _ =
                 insert {
                     into personsView
@@ -40,7 +40,7 @@ type InsertTests () =
     member _.``Cancellation works``() = 
         task {
             do! init.InitPersons()
-            let r = Persons.View.generate 1 |> List.head
+            let r = Persons.View.generate ()
 
             use cts = new CancellationTokenSource()
             cts.Cancel()
@@ -62,8 +62,7 @@ type InsertTests () =
 
             do! init.InitPersons()
             let r =
-                Persons.View.generate 1
-                |> List.head
+                Persons.View.generate ()
                 |> fun x -> ({ Id = x.Id; FirstName = x.FirstName; LastName = x.LastName; Position = x.Position } : Persons.ViewRequired)
             let! _ =
                 insert {
@@ -86,8 +85,8 @@ type InsertTests () =
 
             do! init.InitPersons()
             let r =
-                Persons.View.generate 1
-                |> List.head
+                Persons.View.generate ()
+
             let! _ =
                 insert {
                     for p in personsView do
@@ -107,7 +106,7 @@ type InsertTests () =
     member _.``Inserts more records``() = 
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -149,7 +148,7 @@ type InsertTests () =
         task {
             do! init.InitPersons()
 
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
 
             // insert initial data
             let! _ = 

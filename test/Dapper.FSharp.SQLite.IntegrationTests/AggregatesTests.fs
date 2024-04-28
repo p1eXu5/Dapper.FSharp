@@ -1,8 +1,8 @@
-﻿module Dapper.FSharp.Tests.SQLite.AggregatesTests
+module Dapper.FSharp.IntegrationTests.SQLite.AggregatesTests
 
 open NUnit.Framework
 open Dapper.FSharp.SQLite
-open Dapper.FSharp.Tests.Database
+open Dapper.FSharp.Testing.Database
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -19,7 +19,7 @@ type AggregatesTests () =
     member _.``Selects with COUNT aggregate function``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -40,7 +40,7 @@ type AggregatesTests () =
     member _.``Selects with COUNTBY aggregate function``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -62,7 +62,7 @@ type AggregatesTests () =
         task {
                 do! init.InitPersons()
                 let rs =
-                    Persons.View.generate 10
+                    Persons.View.generateMany 10
                     |> List.map (fun x -> if x.Position > 5 then { x with Position = 10 } else x)
                 let! _ =
                     insert {
@@ -87,7 +87,7 @@ type AggregatesTests () =
     member _.``Selects with COUNT aggregate function + WHERE``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -109,7 +109,7 @@ type AggregatesTests () =
     member _.``Selects with AVG aggregate function``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -131,7 +131,7 @@ type AggregatesTests () =
     member _.``Selects with SUM aggregate function``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -151,7 +151,7 @@ type AggregatesTests () =
     member _.``Selects with MIN aggregate function``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -171,7 +171,7 @@ type AggregatesTests () =
     member _.``Selects with MAX aggregate function``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -193,7 +193,7 @@ type AggregatesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let ps = Persons.View.generate 10
+            let ps = Persons.View.generateMany 10
             let ds = Dogs.View.generate1toN 5 ps.Head
             let! _ =
                 insert {
@@ -224,7 +224,7 @@ type AggregatesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let ps = Persons.View.generate 10
+            let ps = Persons.View.generateMany 10
             let ds = Dogs.View.generate1toN 5 ps.Head
             let! _ =
                 insert {
@@ -255,7 +255,7 @@ type AggregatesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let ps = Persons.View.generate 10
+            let ps = Persons.View.generateMany 10
             let ds = Dogs.View.generate1toN 5 ps.Head
             let! _ =
                 insert {
@@ -284,7 +284,7 @@ type AggregatesTests () =
     member _.``Selects with multiple aggregate functions``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -309,7 +309,7 @@ type AggregatesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let px = Persons.View.generate 10
+            let px = Persons.View.generateMany 10
             let ds = Dogs.View.generate1toN 5 px.Head
             let! _ =
                 insert {
@@ -345,7 +345,7 @@ type AggregatesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let px = Persons.View.generate 10
+            let px = Persons.View.generateMany 10
             let ds = Dogs.View.generate1toN 5 px.Head
             let! _ =
                 insert {

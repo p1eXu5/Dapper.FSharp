@@ -1,11 +1,11 @@
-﻿module Dapper.FSharp.Tests.SQLite.SelectTests
+module Dapper.FSharp.IntegrationTests.SQLite.SelectTests
 
 open System
 open System.Threading
 open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
-open Dapper.FSharp.Tests.Database
+open Dapper.FSharp.Testing.Database
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -26,7 +26,7 @@ type SelectTests () =
     member _.``Selects by single where condition``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -46,7 +46,7 @@ type SelectTests () =
     member _.``Cancellation works`` () =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -72,7 +72,7 @@ type SelectTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1to1 persons
             let! _ =
                 insert {
@@ -102,7 +102,7 @@ type SelectTests () =
     member _.``Selects by single where condition with table name used``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -121,7 +121,7 @@ type SelectTests () =
     member _.``Selects by IN where condition`` () =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -147,7 +147,7 @@ type SelectTests () =
     member _.``Selects by NOT IN where condition``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -169,7 +169,7 @@ type SelectTests () =
     member _.``Selects by IS NULL where condition``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -190,7 +190,7 @@ type SelectTests () =
     member _.``Selects by IS NOT NULL where condition``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -211,7 +211,7 @@ type SelectTests () =
     member _.``Selects by LIKE where condition return matching rows``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -232,7 +232,7 @@ type SelectTests () =
     member _.``Selects by NOT LIKE where condition return matching rows``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -252,7 +252,7 @@ type SelectTests () =
     member _.``Selects by NOT LIKE where condition do not return non-matching rows``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -271,7 +271,7 @@ type SelectTests () =
     member _.``Selects by UNARY NOT where condition``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -292,7 +292,7 @@ type SelectTests () =
     member _.``Selects by multiple where conditions``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -311,7 +311,7 @@ type SelectTests () =
     member _.``Selects by andWhere``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -332,7 +332,7 @@ type SelectTests () =
     member _.``Selects by orWhere``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -352,7 +352,7 @@ type SelectTests () =
     member _.``Selects by just andWhere``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -372,7 +372,7 @@ type SelectTests () =
     member _.``Selects by andWhere and orWhere``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -397,7 +397,7 @@ type SelectTests () =
         let pos = pos |> Option.ofNullable
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -423,7 +423,7 @@ type SelectTests () =
         let pos = pos |> Option.ofNullable
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -445,7 +445,7 @@ type SelectTests () =
     member _.``Selects with order by``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -464,7 +464,7 @@ type SelectTests () =
     member _.``Selects with skip parameter``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -485,7 +485,7 @@ type SelectTests () =
     member _.``Selects with skipTake parameter``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -506,7 +506,7 @@ type SelectTests () =
     member _.``Selects with skip and take parameters``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -529,7 +529,7 @@ type SelectTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1to1 persons
             let! _ =
                 insert {
@@ -557,7 +557,7 @@ type SelectTests () =
         task {
             do! init.InitPersons()
             do! init.InitDogs()
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let! _ =
                 insert {
@@ -589,7 +589,7 @@ type SelectTests () =
         task {
             do! init.InitPersons()
             do! init.InitDogs()
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let! _ =
                 insert {
@@ -618,7 +618,7 @@ type SelectTests () =
         task {
             do! init.InitPersons()
             do! init.InitDogs()
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let! _ =
                 insert {
@@ -653,7 +653,7 @@ type SelectTests () =
             do! init.InitDogs()
             do! init.InitDogsWeights()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1to1 persons
             let weights = DogsWeights.View.generate1to1 dogs
 
@@ -693,7 +693,7 @@ type SelectTests () =
             do! init.InitDogs()
             do! init.InitDogsWeights()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let weights = DogsWeights.View.generate1toN 3 dogs.Head
 
@@ -734,7 +734,7 @@ type SelectTests () =
             do! init.InitDogs()
             do! init.InitDogsWeights()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let weights = DogsWeights.View.generate1toN 3 dogs.Head
 
@@ -784,7 +784,7 @@ type SelectTests () =
             do! init.InitDogsWeights()
             do! init.InitVaccinations()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1to1 persons
             let weights = DogsWeights.View.generate1to1 dogs
             let vaccinations = DogVaccinations.View.generate1to1 dogs
@@ -833,7 +833,7 @@ type SelectTests () =
             do! init.InitDogsWeights()
             do! init.InitVaccinations()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let weights = DogsWeights.View.generate1toN 3 dogs.Head
             let vaccinations = DogVaccinations.View.generate1toN 3 dogs.Head
@@ -884,7 +884,7 @@ type SelectTests () =
             do! init.InitDogsWeights()
             do! init.InitVaccinations()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let weights = DogsWeights.View.generate1toN 3 dogs.Head
             let vaccinations = DogVaccinations.View.generate1toN 3 dogs.Head
@@ -945,7 +945,7 @@ type SelectTests () =
             do! init.InitVaccinations()
             do! init.InitVaccinationManufacturers()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1to1 persons
             let weights = DogsWeights.View.generate1to1 dogs
             let vaccinations = DogVaccinations.View.generate1to1 dogs
@@ -1003,7 +1003,7 @@ type SelectTests () =
             do! init.InitVaccinations()
             do! init.InitVaccinationManufacturers()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let weights = DogsWeights.View.generate1toN 3 dogs.Head
             let vaccinations = DogVaccinations.View.generate1toN 3 dogs.Head
@@ -1063,7 +1063,7 @@ type SelectTests () =
             do! init.InitVaccinations()
             do! init.InitVaccinationManufacturers()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
             let weights = DogsWeights.View.generate1toN 3 dogs.Head
             let vaccinations = DogVaccinations.View.generate1toN 3 dogs.Head

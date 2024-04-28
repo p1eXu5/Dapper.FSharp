@@ -1,7 +1,6 @@
 module internal Dapper.FSharp.IDbConnection
 
 open System.Data
-open System.Threading
 open Dapper
 
 type LogFn = string * Map<string, obj> -> unit

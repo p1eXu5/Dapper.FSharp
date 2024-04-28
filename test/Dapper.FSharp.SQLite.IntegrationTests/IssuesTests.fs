@@ -1,8 +1,8 @@
-﻿module Dapper.FSharp.Tests.SQLite.IssuesTests
+module Dapper.FSharp.IntegrationTests.SQLite.IssuesTests
 
 open NUnit.Framework
 open Dapper.FSharp.SQLite
-open Dapper.FSharp.Tests.Database
+open Dapper.FSharp.Testing.Database
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -21,7 +21,7 @@ type IssuesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1to1 persons
             
             let thirdPerson = persons.[2]
@@ -54,7 +54,7 @@ type IssuesTests () =
             do! init.InitPersons()
             do! init.InitDogs()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             let secondPerson = persons.[1]
             let secondPersonId = secondPerson.Id
             
@@ -85,7 +85,7 @@ type IssuesTests () =
         task {
             do! init.InitPersons()
 
-            let persons = Persons.View.generate 10
+            let persons = Persons.View.generateMany 10
             
             let! _ =
                 insert {

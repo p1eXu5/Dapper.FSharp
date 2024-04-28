@@ -1,10 +1,10 @@
-﻿module Dapper.FSharp.Tests.SQLite.DeleteTests
+module Dapper.FSharp.IntegrationTests.SQLite.DeleteTests
 
 open System.Threading
 open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
-open Dapper.FSharp.Tests.Database
+open Dapper.FSharp.Testing.Database
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -20,7 +20,7 @@ type DeleteTests () =
     member _.``Deletes single records``() =
         task {
         do! init.InitPersons()
-        let rs = Persons.View.generate 10
+        let rs = Persons.View.generateMany 10
         let! _ =
             insert {
                 into personsView
@@ -45,7 +45,7 @@ type DeleteTests () =
     member _.`` Cancellation works``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView
@@ -68,7 +68,7 @@ type DeleteTests () =
     member _.``Deletes more records``() =
         task {
             do! init.InitPersons()
-            let rs = Persons.View.generate 10
+            let rs = Persons.View.generateMany 10
             let! _ =
                 insert {
                     into personsView

@@ -1,0 +1,60 @@
+name: Testing
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+    
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  publish:     
+    runs-on: ubuntu-latest
+    permissions:
+        packages: write
+    steps:
+    # Checks out a copy of your repository on the ubuntu-latest machine
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Install dependencies
+      run: |
+          dotnet restore src/Dapper.FSharp/Dapper.FSharp.fsproj
+
+          dotnet restore src/Dapper.FSharp.MySQL/Dapper.FSharp.MySQL.fsproj
+          dotnet restore test/Dapper.FSharp.MySQL.UnitTests/Dapper.FSharp.MySQL.UnitTests.fsproj
+          dotnet restore test/Dapper.FSharp.MySQL.IntegrationTests/Dapper.FSharp.MySQL.IntegrationTests.fsproj
+
+          dotnet restore src/Dapper.FSharp.SQLite/Dapper.FSharp.SQLite.fsproj
+          dotnet restore test/Dapper.FSharp.SQLite.IntegrationTests/Dapper.FSharp.SQLite.IntegrationTests.fsproj
+      
+    - name: Build
+      run: |
+          dotnet build src/Dapper.FSharp/Dapper.FSharp.fsproj --configuration Release --no-restore
+          
+          dotnet build src/Dapper.FSharp.MySQL/Dapper.FSharp.MySQL.fsproj --configuration Release --no-restore
+          dotnet build test/Dapper.FSharp.MySQL.UnitTests/Dapper.FSharp.MySQL.UnitTests.fsproj --configuration Release --no-restore
+          dotnet build test/Dapper.FSharp.MySQL.IntegrationTests/Dapper.FSharp.MySQL.IntegrationTests.fsproj --configuration Release --no-restore
+
+          dotnet build src/Dapper.FSharp.SQLite/Dapper.FSharp.SQLite.fsproj --configuration Release --no-restore
+          dotnet build test/Dapper.FSharp.SQLite.IntegrationTests/Dapper.FSharp.SQLite.IntegrationTests.fsproj --configuration Release --no-restore
+
+    - name: Test
+      run: |
+        export DOCKER_HOST=tcp://localhost:2375
+
+        dotnet test test/Dapper.FSharp.MySQL.UnitTests/Dapper.FSharp.MySQL.UnitTests.fsproj --no-restore --verbosity normal
+        dotnet test test/Dapper.FSharp.MySQL.IntegrationTests/Dapper.FSharp.MySQL.IntegrationTests.fsproj --no-restore --verbosity normal
+        
+        dotnet test test/Dapper.FSharp.SQLite.IntegrationTests/Dapper.FSharp.SQLite.IntegrationTests.fsproj --no-restore --verbosity normal
+
+    - name: Docker Info
+      run: docker info
