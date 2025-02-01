@@ -203,6 +203,24 @@ module Issues =
                 return ()
             }
 
+   module Reviews = 
+        let init (conn:IDbConnection) =
+            task {
+                do! "DROP TABLE IF EXISTS Reviews" |> conn.ExecuteIgnore
+                do!
+                    """
+                    CREATE TABLE [Reviews](
+                    [Id] [INTEGER] NOT NULL,
+                    [Score] [INT] NOT NULL,
+                    [Username] [TEXT] NOT NULL,
+                    [Review] [TEXT] NULL
+                    )
+                    """
+                    |> conn.ExecuteIgnore
+                return ()
+            }
+
+
 let getInitializer (conn:IDbConnection) =
     { new ICrudInitializer with
         member x.InitPersons () = Persons.init conn
