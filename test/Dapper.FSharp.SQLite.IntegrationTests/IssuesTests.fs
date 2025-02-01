@@ -3,6 +3,8 @@ module Dapper.FSharp.IntegrationTests.SQLite.IssuesTests
 open NUnit.Framework
 open Dapper.FSharp.SQLite
 open Dapper.FSharp.Testing.Database
+open Faqt
+open Faqt.Operators
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -11,7 +13,7 @@ type IssuesTests () =
     let dogsView = table'<Dogs.View> "Dogs"
     let conn = Database.getConnection()
     let init = Database.getInitializer conn
-    
+
     [<OneTimeSetUp>]
     member _.``Setup DB``() = conn |> Database.safeInit
     
@@ -44,8 +46,8 @@ type IssuesTests () =
                     selectAll
                 } |> conn.SelectAsync<Persons.View, Dogs.View>
             
-            Assert.AreEqual(1, Seq.length fromDb)
-            Assert.AreEqual((thirdPerson, thirdDog), (Seq.head fromDb))
+            fromDb |> Seq.length |> _.Should().Be(1) |> ignore
+            fromDb |> Seq.head |> _.Should().Be((thirdPerson, thirdDog)) |> ignore
         }
     
     [<Test>]
@@ -77,7 +79,7 @@ type IssuesTests () =
                     selectAll
                 } |> conn.SelectAsyncOption<Persons.View, Dogs.View>
             
-            Assert.AreEqual(14, Seq.length fromDb)
+            fromDb |> Seq.length |> _.Should().Be(14) |> ignore
         }
     
     [<Test>]
@@ -109,9 +111,9 @@ type IssuesTests () =
                 }
                 |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(1, Seq.length resultsA)
-            Assert.AreEqual(5, resultsA |> Seq.head |> (fun x -> x.Position))
-            
-            Assert.AreEqual(1, Seq.length resultsB)
-            Assert.AreEqual(5, resultsB |> Seq.head |> (fun x -> x.Position))
+            resultsA |> Seq.length |> _.Should().Be(1) |> ignore
+            resultsA |> Seq.head |> _.Position.Should().Be(5) |> ignore
+
+            resultsB |> Seq.length |> _.Should().Be(1) |> ignore
+            resultsB |> Seq.head |> _.Position.Should().Be(5) |> ignore
         }

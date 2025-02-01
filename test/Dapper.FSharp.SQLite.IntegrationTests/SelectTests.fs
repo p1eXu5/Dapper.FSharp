@@ -6,6 +6,8 @@ open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
 open Dapper.FSharp.Testing.Database
+open Faqt
+open Faqt.Operators
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -18,7 +20,7 @@ type SelectTests () =
     let manufacturersView = table'<VaccinationManufacturers.View> "VaccinationManufacturers"
     let conn = Database.getConnection()
     let init = Database.getInitializer conn
-    
+
     [<OneTimeSetUp>]
     member _.``Setup DB``() = conn |> Database.safeInit
         
@@ -39,7 +41,7 @@ type SelectTests () =
                     where (p.Position = 5)
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual (rs |> List.find (fun x -> x.Position = 5), Seq.head fromDb)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (_.Position >> (=) 5)) |> ignore
         }
     
     [<Test>]
@@ -114,7 +116,7 @@ type SelectTests () =
                     where (p.Position = 5)
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(rs |> List.find (fun x -> x.Position = 5), Seq.head fromDb)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (fun x -> x.Position = 5)) |> ignore
         }
         
     [<Test>]
@@ -136,11 +138,11 @@ type SelectTests () =
             
             let exp1 = rs |> List.find (fun x -> x.Position = 5)
             let act1 = Seq.head fromDb
-            Assert.AreEqual(exp1,act1)
+            %act1.Should().Be(exp1)
             
             let exp2 = rs |> List.find (fun x -> x.Position = 6)
             let act2 = Seq.last fromDb
-            Assert.AreEqual(exp2,act2)
+            %act2.Should().Be(exp2)
         }
         
     [<Test>]
@@ -160,9 +162,9 @@ type SelectTests () =
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(rs |> List.find (fun x -> x.Position = 4), Seq.head fromDb)
-            Assert.AreEqual(rs |> List.find (fun x -> x.Position = 10), Seq.last fromDb)
-            Assert.AreEqual(7, Seq.length fromDb)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (fun x -> x.Position = 4)) |> ignore
+            fromDb |> Seq.last |> _.Should().Be(rs |> List.find (fun x -> x.Position = 10)) |> ignore
+            fromDb |> Seq.length |> _.Should().Be(7) |> ignore
         }
         
     [<Test>]
@@ -182,8 +184,8 @@ type SelectTests () =
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual (rs |> List.find (fun x -> x.Position = 2), Seq.head fromDb)
-            Assert.AreEqual (5, Seq.length fromDb)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (fun x -> x.Position = 2)) |> ignore
+            fromDb |> Seq.length |> _.Should().Be(5) |> ignore
     }
         
     [<Test>]
@@ -203,8 +205,8 @@ type SelectTests () =
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual (rs |> List.find (fun x -> x.Position = 1), Seq.head fromDb)
-            Assert.AreEqual (5, Seq.length fromDb)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (fun x -> x.Position = 1)) |> ignore
+            fromDb |> Seq.length |> _.Should().Be(5) |> ignore
         }
     
     [<Test>]
@@ -223,9 +225,9 @@ type SelectTests () =
                     where (like p.FirstName "First_1%")
                 } |> conn.SelectAsync<Persons.View>
             
-            CollectionAssert.IsNotEmpty fromDb
-            Assert.AreEqual(2, Seq.length fromDb)
-            Assert.IsTrue(fromDb |> Seq.forall (fun (p:Persons.View) -> p.FirstName.StartsWith "First"))
+            %fromDb.Should().NotBeEmpty()
+            fromDb |> Seq.length |> _.Should().Be(2) |> ignore
+            %fromDb.Should().AllSatisfy(fun x -> x.FirstName.StartsWith "First_1")
         }
     
     [<Test>]
@@ -244,8 +246,8 @@ type SelectTests () =
                     where (notLike p.FirstName "First_1%")
                 }
                 |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(8, Seq.length fromDb)
+
+            %fromDb.Should().HaveLength(8) 
         }
         
     [<Test>]
@@ -264,7 +266,7 @@ type SelectTests () =
                     where (notLike p.FirstName "NonExistingName%")
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(10, Seq.length fromDb)
+            %fromDb.Should().HaveLength(10)
         }
     
     [<Test>]
@@ -284,8 +286,8 @@ type SelectTests () =
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(rs |> List.find (fun x -> x.Position = 9), Seq.last fromDb)
-            Assert.AreEqual(7, Seq.length fromDb)
+            fromDb |> Seq.last |> _.Should().Be(rs |> List.find (fun x -> x.Position = 9)) |> ignore
+            %fromDb.Should().HaveLength(7)
         }
         
     [<Test>]
@@ -304,7 +306,7 @@ type SelectTests () =
                     where (p.Position > 2 && p.Position < 4)
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual (rs |> List.find (fun x -> x.Position = 3), Seq.head fromDb)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (fun x -> x.Position = 3)) |> ignore
         }
 
     [<Test>]
@@ -324,8 +326,8 @@ type SelectTests () =
                     andWhere (p.Position < 4)
                 } |> conn.SelectAsync<Persons.View>
 
-            Assert.AreEqual (rs |> List.find (fun x -> x.Position = 3), Seq.head fromDb)
-            Assert.AreEqual(1, Seq.length fromDb)
+            %fromDb.Should().HaveLength(1)
+            fromDb |> Seq.head |> _.Should().Be(rs |> List.find (fun x -> x.Position = 3)) |> ignore
         }
 
     [<Test>]
@@ -345,7 +347,7 @@ type SelectTests () =
                     orWhere (p.Position > 8)
                 } |> conn.SelectAsync<Persons.View>
 
-            Assert.AreEqual(3, Seq.length fromDb)
+            %fromDb.Should().HaveLength(3)
         }
 
     [<Test>]
@@ -364,8 +366,8 @@ type SelectTests () =
                     andWhere (p.Position < 2)
                 } |> conn.SelectAsync<Persons.View>
 
-            Assert.AreEqual (rs |> List.find (fun x -> x.Position = 1), Seq.head fromDb)
-            Assert.AreEqual(1, Seq.length fromDb)
+            %fromDb.Should().HaveLength(1)
+            %fromDb.Should().ContainExactlyOneItemMatching(fun x -> x.Position = 1)
         }
 
     [<Test>]
@@ -386,7 +388,7 @@ type SelectTests () =
                     orWhere (p.Position > 9)
                 } |> conn.SelectAsync<Persons.View>
 
-            Assert.AreEqual(2, Seq.length fromDb)
+            %fromDb.Should().HaveLength(2)
         }
 
     [<TestCase(4)>]
@@ -412,7 +414,7 @@ type SelectTests () =
                 } |> conn.SelectAsync<Persons.View>
 
             let expected = rs |> List.filter (fun x -> x.Position > 2 && Option.forall (fun p -> x.Position < p) pos) |> List.length
-            Assert.AreEqual(expected, Seq.length fromDb)
+            %fromDb.Should().HaveLength(expected)
         }
 
     [<TestCase(4)>]
@@ -438,7 +440,7 @@ type SelectTests () =
                 } |> conn.SelectAsync<Persons.View>
 
             let expected = rs |> List.filter (fun x -> x.Position < 2 || Option.exists (fun p -> x.Position > p) pos) |> List.length
-            Assert.AreEqual(expected, Seq.length fromDb)
+            %fromDb.Should().HaveLength(expected)
         }
 
     [<Test>]
@@ -457,7 +459,7 @@ type SelectTests () =
                     orderByDescending p.Position
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(10, fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position))
+            fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position) |> _.Should().Be(10) |> ignore
         }
     
     [<Test>]
@@ -476,9 +478,9 @@ type SelectTests () =
                     skip 5 10
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(6, fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position))
-            Assert.AreEqual(5, fromDb |> Seq.length)
+
+            %fromDb.Should().HaveLength(5)
+            fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position) |> _.Should().Be(6) |> ignore
         }
     
     [<Test>]
@@ -497,9 +499,9 @@ type SelectTests () =
                     skipTake 5 2
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(6, fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position))
-            Assert.AreEqual(2, fromDb |> Seq.length)
+
+            %fromDb.Should().HaveLength(2)
+            fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position) |> _.Should().Be(6) |> ignore
         }
     
     [<Test>]
@@ -518,9 +520,9 @@ type SelectTests () =
                     skip 5 2
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(6, fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position))
-            Assert.AreEqual(2, fromDb |> Seq.length)
+
+            %fromDb.Should().HaveLength(2)
+            fromDb |> Seq.head |> (fun (x:Persons.View) -> x.Position) |> _.Should().Be(6) |> ignore
         }
 
     [<Test>]
@@ -548,8 +550,8 @@ type SelectTests () =
                     selectAll
                 } |> conn.SelectAsync<Persons.View, Dogs.View>
 
-            Assert.AreEqual(10, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head), (Seq.head fromDb))
+            %fromDb.Should().HaveLength(10)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head)) |> ignore
         }
     
     [<Test>]
@@ -578,10 +580,11 @@ type SelectTests () =
 
             let byOwner = fromDb |> Seq.groupBy fst
 
-            Assert.AreEqual(5, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head), (Seq.head fromDb))
-            Assert.AreEqual(1, Seq.length byOwner)
-            Assert.AreEqual(5, byOwner |> Seq.head |> snd |> Seq.length)
+            %fromDb.Should().HaveLength(5)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head)) |> ignore
+
+            %byOwner.Should().HaveLength(1)
+            byOwner |> Seq.head |> snd |> Seq.length |> _.Should().Be(5) |> ignore
         }
 
     [<Test>]
@@ -591,16 +594,19 @@ type SelectTests () =
             do! init.InitDogs()
             let persons = Persons.View.generateMany 10
             let dogs = Dogs.View.generate1toN 5 persons.Head
+
             let! _ =
                 insert {
                     into personsView
                     values persons
                 } |> conn.InsertAsync
+
             let! _ =
                 insert {
                     into dogsView
                     values dogs
                 } |> conn.InsertAsync
+
             let! fromDb =
                 select {
                     for p in personsView do
@@ -609,8 +615,9 @@ type SelectTests () =
                     selectAll
                 } |> conn.SelectAsync<Persons.View>
 
-            Assert.AreEqual(1, Seq.length fromDb)
-            Assert.AreEqual(persons.Head, (Seq.head fromDb))
+
+            %fromDb.Should().HaveLength(1)
+            fromDb |> Seq.head |> _.Should().Be(persons.Head) |> ignore
         }
 
     [<Test>]
@@ -640,10 +647,11 @@ type SelectTests () =
 
             let byOwner = fromDb |> Seq.groupBy fst
 
-            Assert.AreEqual(14, Seq.length fromDb)
-            Assert.AreEqual(5, byOwner |> Seq.head |> snd |> Seq.length)
-            Assert.IsTrue (fromDb |> Seq.last |> snd |> Option.isNone)
-            Assert.AreEqual((dogs |> List.head |> Some), (fromDb |> Seq.head |> snd))
+            %fromDb.Should().HaveLength(14)
+            byOwner |> Seq.head |> snd |> Seq.length |> _.Should().Be(5) |> ignore
+
+            fromDb |> Seq.last |> snd |> Option.isNone |> _.Should().BeTrue() |> ignore
+            fromDb |> Seq.head |> snd |> _.Should().Be(dogs |> List.head |> Some) |> ignore
         }
     
     [<Test>]
@@ -682,8 +690,8 @@ type SelectTests () =
                 }
                 |> conn.SelectAsync<Persons.View, Dogs.View, DogsWeights.View>
 
-            Assert.AreEqual(10, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head, weights.Head), (Seq.head fromDb))
+            %fromDb.Should().HaveLength(10)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head, weights.Head)) |> ignore
         }
     
     [<Test>]
@@ -723,8 +731,8 @@ type SelectTests () =
                     thenBy dw.Year
                 } |> conn.SelectAsync<Persons.View, Dogs.View, DogsWeights.View>
 
-            Assert.AreEqual(3, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head, weights.Head), Seq.head fromDb)
+            %fromDb.Should().HaveLength(3)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head, weights.Head)) |> ignore
         }
     
     [<Test>]
@@ -764,16 +772,17 @@ type SelectTests () =
                     thenBy dw.Year
                 } |> conn.SelectAsyncOption<Persons.View, Dogs.View, DogsWeights.View>
 
+            %fromDb.Should().HaveLength(16)
+
             let p1,d1,w1 = fromDb |> Seq.head
-            Assert.AreEqual(persons.Head, p1)
-            Assert.AreEqual(Some dogs.Head, d1)
-            Assert.AreEqual(Some weights.Head, w1)
+            %p1.Should().Be(persons.Head)
+            %d1.Should().Be(Some dogs.Head)
+            %w1.Should().Be(Some weights.Head)
 
             let pn,dn,wn = fromDb |> Seq.last
-            Assert.AreEqual((persons |> Seq.last), pn)
-            Assert.AreEqual(None, dn)
-            Assert.AreEqual(None, wn)
-            Assert.AreEqual(16, Seq.length fromDb)
+            %pn.Should().Be(persons |> Seq.last)
+            %dn.Should().BeNone()
+            %wn.Should().BeNone()
         }
     
     [<Test>]
@@ -821,8 +830,8 @@ type SelectTests () =
                 }
                 |> conn.SelectAsync<Persons.View, Dogs.View, DogsWeights.View, DogVaccinations.View>
 
-            Assert.AreEqual(10, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head, weights.Head, vaccinations.Head), (Seq.head fromDb))
+            %fromDb.Should().HaveLength(10)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head, weights.Head, vaccinations.Head)) |> ignore
         }
     
     [<Test>]
@@ -872,8 +881,8 @@ type SelectTests () =
                     thenBy v.Vaccination
                 } |> conn.SelectAsync<Persons.View, Dogs.View, DogsWeights.View, DogVaccinations.View>
 
-            Assert.AreEqual(9, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head, weights.Head, vaccinations.Head), Seq.head fromDb)
+            %fromDb.Should().HaveLength(9)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head, weights.Head, vaccinations.Head)) |> ignore
         }
         
     [<Test>]
@@ -924,16 +933,16 @@ type SelectTests () =
                 } |> conn.SelectAsyncOption<Persons.View, Dogs.View, DogsWeights.View, DogVaccinations.View>
 
             let p1,d1,w1,v1 = fromDb |> Seq.head
-            Assert.AreEqual(persons.Head, p1)
-            Assert.AreEqual(Some dogs.Head, d1)
-            Assert.AreEqual(Some weights.Head, w1)
-            Assert.AreEqual(Some vaccinations.Head, v1)
+            %p1.Should().Be(persons.Head)
+            %d1.Should().Be(Some dogs.Head)
+            %w1.Should().Be(Some weights.Head)
+            %v1.Should().Be(Some vaccinations.Head)
 
             let pn,dn,wn,vn = fromDb |> Seq.last
-            Assert.AreEqual((persons |> Seq.last), pn)
-            Assert.AreEqual(None, dn)
-            Assert.AreEqual(None, wn)
-            Assert.AreEqual(None, vn)
+            %pn.Should().Be(persons |> Seq.last)
+            %dn.Should().BeNone()
+            %wn.Should().BeNone()
+            %vn.Should().BeNone()
         }
         
     [<Test>]
@@ -990,8 +999,8 @@ type SelectTests () =
                 }
                 |> conn.SelectAsync<Persons.View, Dogs.View, DogsWeights.View, DogVaccinations.View, VaccinationManufacturers.View>
 
-            Assert.AreEqual(10, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head, weights.Head, vaccinations.Head, manufacturers.Head), (Seq.head fromDb))
+            %fromDb.Should().HaveLength(10)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head, weights.Head, vaccinations.Head, manufacturers.Head)) |> ignore
         }
     
     [<Test>]
@@ -1050,8 +1059,8 @@ type SelectTests () =
                     thenBy m.Manufacturer
                 } |> conn.SelectAsync<Persons.View, Dogs.View, DogsWeights.View, DogVaccinations.View, VaccinationManufacturers.View>
 
-            Assert.AreEqual(9, Seq.length fromDb)
-            Assert.AreEqual((persons.Head, dogs.Head, weights.Head, vaccinations.Head, manufacturers.Head), Seq.head fromDb)
+            %fromDb.Should().HaveLength(9)
+            fromDb |> Seq.head |> _.Should().Be((persons.Head, dogs.Head, weights.Head, vaccinations.Head, manufacturers.Head)) |> ignore
         }
         
     [<Test>]
@@ -1112,16 +1121,16 @@ type SelectTests () =
                 } |> conn.SelectAsyncOption<Persons.View, Dogs.View, DogsWeights.View, DogVaccinations.View, VaccinationManufacturers.View>
 
             let p1,d1,w1,v1,m1 = fromDb |> Seq.head
-            Assert.AreEqual(persons.Head, p1)
-            Assert.AreEqual(Some dogs.Head, d1)
-            Assert.AreEqual(Some weights.Head, w1)
-            Assert.AreEqual(Some vaccinations.Head, v1)
-            Assert.AreEqual(Some manufacturers.Head, m1)
+            %p1.Should().Be(persons.Head)
+            %d1.Should().Be(Some dogs.Head)
+            %w1.Should().Be(Some weights.Head)
+            %v1.Should().Be(Some vaccinations.Head)
+            %m1.Should().Be(Some manufacturers.Head)
 
             let pn,dn,wn,vn, mn = fromDb |> Seq.last
-            Assert.AreEqual((persons |> Seq.last), pn)
-            Assert.AreEqual(None, dn)
-            Assert.AreEqual(None, wn)
-            Assert.AreEqual(None, vn)
-            Assert.AreEqual(None, mn)
+            %pn.Should().Be(persons |> Seq.last)
+            %dn.Should().BeNone()
+            %wn.Should().BeNone()
+            %vn.Should().BeNone()
+            %mn.Should().BeNone()
         }

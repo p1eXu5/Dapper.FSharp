@@ -54,7 +54,6 @@ module SelectTests =
             ClassicAssert.AreEqual (rs |> List.find (fun x -> x.Position = 5), Seq.head fromDb)
         }
 
-#if MySqlData_lt_8_0_33
     [<Test>]
     let ``cancellation works`` () =
         task {
@@ -110,64 +109,7 @@ module SelectTests =
 
             Assert.ThrowsAsync<TaskCanceledException>(action) |> ignore
         }
-#else
-    [<Test>]
-    let ``cancellation does not work`` () =
-        task {
-            do! Persons.init conn
-            let rs = Persons.View.generateMany 10
-            let! _ =
-                insert {
-                    into personsView
-                    values rs
-                } |> conn.InsertAsync
 
-            use cts = new CancellationTokenSource()
-            cts.Cancel()
-            let selectCrud query =
-                conn.SelectAsync<Persons.View>(query, cancellationToken = cts.Token) :> Task
-            let action () = 
-                select {
-                    for p in personsView do
-                    where (p.Position = 5)
-                } |> selectCrud
-            
-            Assert.DoesNotThrowAsync(action) |> ignore
-        }
-
-    [<Test>]
-    let ``cancellation does not work - one join``() =
-        task {
-            do! Persons.init conn
-            do! Dogs.init conn
-
-            let persons = Persons.View.generateMany 10
-            let dogs = Dogs.View.generate1to1 persons
-            let! _ =
-                insert {
-                    into personsView
-                    values persons
-                } |> conn.InsertAsync
-            let! _ =
-                insert {
-                    into dogsView
-                    values dogs
-                } |> conn.InsertAsync
-            use cts = new CancellationTokenSource()
-            cts.Cancel()
-            let selectCrud query =
-                conn.SelectAsync<Persons.View, Dogs.View>(query, cancellationToken = cts.Token) :> Task
-            let action () =
-                select {
-                    for p in personsView do
-                    innerJoin d in dogsView on (p.Id = d.OwnerId)
-                    selectAll
-                } |> selectCrud
-
-            Assert.DoesNotThrowAsync(action) |> ignore
-        }
-#endif
-        
     [<Test>]
     let ``selects by single where condition with table name used``() =
         task {

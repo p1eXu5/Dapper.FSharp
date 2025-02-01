@@ -26,7 +26,6 @@ public class MySQLCancellationTests
     }
 
     [Test]
-    [Ignore("To check MySQL.Data versions")]
     public async Task ExecuteAsync_CancellationTest()
     {
         // await conn.ExecuteAsync("drop table Persons");

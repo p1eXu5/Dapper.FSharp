@@ -13,6 +13,7 @@ type SetUpDbContainer() =
             let fi = FileInfo(Path.Combine(uri.FullName, "init.sql"))
             let container =
                 MySqlBuilder()
+                    .WithImage("mysql:8.0.33")
                     .WithResourceMapping(fi, "/docker-entrypoint-initdb.d/")
                     .WithDatabase("fsharp_dapper_test_db")
                     .WithUsername("admin")

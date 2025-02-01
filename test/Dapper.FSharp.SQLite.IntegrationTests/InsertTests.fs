@@ -6,6 +6,8 @@ open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
 open Dapper.FSharp.Testing.Database
+open Faqt
+open Faqt.Operators
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -33,7 +35,7 @@ type InsertTests () =
                     where (p.Id = r.Id)
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual(r, Seq.head fromDb)
+           %(Seq.head fromDb).Should().Be(r)
         }
     
     [<Test>]
@@ -75,7 +77,7 @@ type InsertTests () =
                     where (p.Id = r.Id)
                 } |> conn.SelectAsync<Persons.ViewRequired>
             
-            Assert.AreEqual(r, Seq.head fromDb)
+            %(Seq.head fromDb).Should().Be(r)
         }
     
     [<Test>]
@@ -99,7 +101,7 @@ type InsertTests () =
                     where (p.Id = r.Id)
                 } |> conn.SelectAsync<Persons.View>
             
-            Assert.AreEqual({ r with DateOfBirth = None }, Seq.head fromDb)
+            fromDb |> Seq.head |> _.Should().Be({ r with DateOfBirth = None }) |> ignore
         }
     
     [<Test>]
@@ -117,7 +119,8 @@ type InsertTests () =
                     for p in personsView do
                     orderBy p.Position
                 } |> conn.SelectAsync<Persons.View>
-            CollectionAssert.AreEqual(rs, Seq.toList fromDb)
+
+            %fromDb.Should().HaveSameItemsAs(rs)
         }
     
     [<Test>]
@@ -139,8 +142,8 @@ type InsertTests () =
                     includeColumn p.FirstName
                     includeColumn p.LastName
                 }
-                
-            Assert.AreEqual (query.Fields, [nameof(person.FirstName); nameof(person.LastName)])
+
+            %query.Fields.Should().Be([nameof(person.FirstName); nameof(person.LastName)])
         }
 
     [<Test>]
@@ -173,6 +176,7 @@ type InsertTests () =
 
             // get data back and ensure everything is modified
             let! fromDb = select { for p in personsView do orderBy p.Position } |> conn.SelectAsync<Persons.View>
-            Assert.AreEqual(10, conflictCount)
-            CollectionAssert.AreEqual(modified, Seq.toList fromDb)
+
+            %conflictCount.Should().Be(10)
+            %fromDb.Should().HaveSameItemsAs(modified)
         }

@@ -1,4 +1,4 @@
-﻿module Dapper.FSharp.IntegrationTests.SQLite.UpdateTests
+module Dapper.FSharp.IntegrationTests.SQLite.UpdateTests
 
 open System
 open System.Threading
@@ -6,6 +6,8 @@ open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
 open Dapper.FSharp.Testing.Database
+open Faqt
+open Faqt.Operators
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -13,7 +15,7 @@ type UpdateTests () =
     let personsView = table'<Persons.View> "Persons"
     let conn = Database.getConnection()
     let init = Database.getInitializer conn
-    
+
     [<OneTimeSetUp>]
     member _.``Setup DB``() = conn |> Database.safeInit
     
@@ -38,9 +40,9 @@ type UpdateTests () =
                     for p in personsView do
                     where (p.LastName = "UPDATED")
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(1, Seq.length fromDb)
-            Assert.AreEqual(2, fromDb |> Seq.head |> fun (x:Persons.View) -> x.Position)
+
+            %fromDb.Should().HaveLength(1)
+            fromDb |> Seq.head |> fun (x:Persons.View) -> x.Position |> _.Should().Be(2) |> ignore
         }
 
     [<Test>]
@@ -89,9 +91,9 @@ type UpdateTests () =
                     for p in personsView do
                     where (p.Position = 2)
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.IsTrue(fromDb |> Seq.head |> fun (x:Persons.View) -> x.DateOfBirth |> Option.isNone)
-            Assert.AreEqual(2, fromDb |> Seq.head |> fun (x:Persons.View) -> x.Position)
+
+            fromDb |> Seq.head |> fun (x:Persons.View) -> x.DateOfBirth |> _.Should().BeNone() |> ignore
+            fromDb |> Seq.head |> fun (x:Persons.View) -> x.Position |> _.Should().Be(2) |> ignore
         }
 
     [<Test>]
@@ -116,8 +118,8 @@ type UpdateTests () =
                     for p in personsView do
                     where (p.LastName = "UPDATED")
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(3, Seq.length fromDb)
+
+            %fromDb.Should().HaveLength(3)
         }
     
     [<Test>]
@@ -139,6 +141,6 @@ type UpdateTests () =
                     includeColumn p.FirstName
                     includeColumn p.LastName
                 }
-                
-            Assert.AreEqual(query.Fields, [nameof(person.FirstName); nameof(person.LastName)])
+
+            %query.Fields.Should().Be([nameof(person.FirstName); nameof(person.LastName)])
         }

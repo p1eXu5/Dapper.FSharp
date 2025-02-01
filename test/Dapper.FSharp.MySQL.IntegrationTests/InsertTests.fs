@@ -53,7 +53,6 @@ module InsertTests =
             fromDb |> Seq.head |> should equal r
         }
 
-#if MySqlData_lt_8_0_33
     [<Test>]
     let ``cancellation works``() = 
         task {
@@ -71,32 +70,10 @@ module InsertTests =
                     value r
                 } |> insertCrud 
 
-            Assert.ThrowsAsync<OperationCanceledException>(action) |> ignore
+            Assert.ThrowsAsync<System.Threading.Tasks.TaskCanceledException>(action) |> ignore
             cts.Dispose()
         }
-#else
-    [<Test>]
-    let ``cancellation does not work``() = 
-        task {
-            do! Persons.init conn
-            let r = Persons.View.generate ()
 
-            let cts = new CancellationTokenSource()
-            cts.Cancel()
-            let insertCrud query =
-                conn.InsertAsync(query, cancellationToken = cts.Token) :> Task
-
-            let action () = 
-                insert {
-                    into personsView
-                    value r
-                } |> insertCrud 
-
-            Assert.DoesNotThrowAsync(action) |> ignore
-            cts.Dispose()
-        }
-#endif
-    
     [<Test>]
     let ``inserts partial record``() = 
         task {        

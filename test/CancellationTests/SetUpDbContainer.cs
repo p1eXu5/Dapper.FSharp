@@ -27,6 +27,7 @@ public class SetUpDbContainer
     {
         var container =
             new MySqlBuilder()
+                .WithImage("mysql:8.0.33")
                 .WithDatabase("fsharp_dapper_test_db")
                 .WithUsername("admin")
                 .WithPassword("admin")

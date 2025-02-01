@@ -5,6 +5,8 @@ open System.Threading.Tasks
 open NUnit.Framework
 open Dapper.FSharp.SQLite
 open Dapper.FSharp.Testing.Database
+open Faqt
+open Faqt.Operators
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -12,7 +14,7 @@ type DeleteTests () =
     let personsView = table'<Persons.View> "Persons"
     let conn = Database.getConnection()
     let init = Database.getInitializer conn
-    
+
     [<OneTimeSetUp>]
     member _.``Setup DB``() = conn |> Database.safeInit
     
@@ -37,8 +39,8 @@ type DeleteTests () =
                 orderByDescending p.Position
             } |> conn.SelectAsync<Persons.View>
         
-        Assert.AreEqual(9, Seq.length fromDb)
-        Assert.AreEqual(9, fromDb |> Seq.head |> fun (x:Persons.View) -> x.Position)
+        fromDb |> Seq.length |> _.Should().Be(9) |> ignore
+        fromDb |> Seq.head |> _.Position.Should().Be(9) |> ignore
     }
     
     [<Test>]
@@ -85,6 +87,6 @@ type DeleteTests () =
                     for p in personsView do
                     selectAll
                 } |> conn.SelectAsync<Persons.View>
-            
-            Assert.AreEqual(6, Seq.length fromDb)
+
+            fromDb |> Seq.length |> _.Should().Be(6) |> ignore
         }

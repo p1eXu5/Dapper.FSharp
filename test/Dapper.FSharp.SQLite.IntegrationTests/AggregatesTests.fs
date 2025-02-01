@@ -3,6 +3,8 @@ module Dapper.FSharp.IntegrationTests.SQLite.AggregatesTests
 open NUnit.Framework
 open Dapper.FSharp.SQLite
 open Dapper.FSharp.Testing.Database
+open Faqt
+open Faqt.Operators
 
 [<TestFixture>]
 [<NonParallelizable>]
@@ -11,7 +13,7 @@ type AggregatesTests () =
     let dogsView = table'<Dogs.View> "Dogs"
     let conn = Database.getConnection()
     let init = Database.getInitializer conn
-    
+
     [<OneTimeSetUp>]
     member _.``Setup DB``() = conn |> Database.safeInit
     
@@ -33,7 +35,7 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{| Value : int |}>
                 |> taskToList
             
-            Assert.AreEqual(10, fromDb.Head.Value)
+            %fromDb.Head.Value.Should().Be(10)
         }
 
     [<Test>]
@@ -54,7 +56,7 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{| Id : int |}>
                 |> taskToList
 
-            Assert.AreEqual(10, fromDb.Head.Id)
+            %fromDb.Head.Id.Should().Be(10)
         }
 
     [<Test>]
@@ -78,9 +80,9 @@ type AggregatesTests () =
                     |> conn.SelectAsync<{| Value : int; Position : int |}>
                     |> taskToList
                     |> List.rev
-                Assert.AreEqual(6, fromDb.Length)
-                Assert.AreEqual(10, fromDb.Head.Position)
-                Assert.AreEqual(5, fromDb.Head.Value)
+                %fromDb.Length.Should().Be(6)
+                %fromDb.Head.Position.Should().Be(10)
+                %fromDb.Head.Value.Should().Be(5)
             }
         
     [<Test>]
@@ -102,7 +104,7 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{| Value : int |}>
                 |> taskToList
             
-            Assert.AreEqual(5, fromDb.Head.Value)
+            %fromDb.Head.Value.Should().Be(5)
         }
         
     [<Test>]
@@ -124,9 +126,9 @@ type AggregatesTests () =
                 |> taskToList
             
             // SQLITE rounds up
-            Assert.AreEqual(6, fromDb.Head.Value)
+            %fromDb.Head.Value.Should().Be(6)
         }
-        
+
     [<Test>]
     member _.``Selects with SUM aggregate function``() =
         task {
@@ -144,9 +146,10 @@ type AggregatesTests () =
                 }
                 |> conn.SelectAsync<{| Value : int |}>
                 |> taskToList
-            Assert.AreEqual(55, fromDb.Head.Value)
+
+            %fromDb.Head.Value.Should().Be(55)
         }
-        
+
     [<Test>]
     member _.``Selects with MIN aggregate function``() =
         task {
@@ -164,9 +167,10 @@ type AggregatesTests () =
                 }
                 |> conn.SelectAsync<{| Value : int |}>
                 |> taskToList
-            Assert.AreEqual(1, fromDb.Head.Value)
+
+            %fromDb.Head.Value.Should().Be(rs |> List.map _.Position |> List.min)
         }
-        
+
     [<Test>]
     member _.``Selects with MAX aggregate function``() =
         task {
@@ -184,7 +188,8 @@ type AggregatesTests () =
                 }
                 |> conn.SelectAsync<{| Value : int |}>
                 |> taskToList
-            Assert.AreEqual(10, fromDb.Head.Value)
+
+            %fromDb.Head.Value.Should().Be(rs |> List.map _.Position |> List.max)
         }
         
     [<Test>]
@@ -215,7 +220,7 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{| FirstName:string |}>
                 |> taskToList
 
-            Assert.AreEqual(10, fromDb.Length)
+            %fromDb.Length.Should().Be(10)
         }
 
     [<Test>]
@@ -246,7 +251,7 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{|Value:int|}>
                 |> taskToList
 
-            Assert.AreEqual(10, fromDb.Head.Value)
+            %fromDb.Head.Value.Should().Be(10)
         }
 
     [<Test>]
@@ -277,7 +282,7 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{|Id:int|}>
                 |> taskToList
 
-            Assert.AreEqual(10, fromDb.Head.Id)
+            %fromDb.Head.Id.Should().Be(10)
         }
         
     [<Test>]
@@ -299,8 +304,8 @@ type AggregatesTests () =
                 |> conn.SelectAsync<{| MaxValue : int; MinValue : int |}>
                 |> taskToList
 
-            Assert.AreEqual(10, fromDb.Head.MaxValue)
-            Assert.AreEqual(1, fromDb.Head.MinValue)
+            %fromDb.Head.MaxValue.Should().Be(10)
+            %fromDb.Head.MinValue.Should().Be(1)
         }
         
     [<Test>]
@@ -334,9 +339,9 @@ type AggregatesTests () =
                 |> taskToList
                 |> List.head
                 
-            Assert.AreEqual(5, one.Count)
-            Assert.AreEqual(1, one.Position)
-            Assert.AreEqual(one.Id, two.OwnerId)
+            %one.Count.Should().Be(5)
+            %one.Position.Should().Be(1)
+            %one.Id.Should().Be(two.OwnerId)
         }
 
     [<Test>]
@@ -368,5 +373,5 @@ type AggregatesTests () =
                 |> taskToList
                 |> List.head
 
-            Assert.AreEqual(5, fromDb.Count)
+            %fromDb.Count.Should().Be(5)
         }
