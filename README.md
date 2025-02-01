@@ -1,8 +1,16 @@
-﻿# Dapper.FSharp [![NuGet](https://img.shields.io/nuget/v/Dapper.FSharp.svg?style=flat-square)](https://www.nuget.org/packages/Dapper.FSharp/)
+﻿# Fork of [Dapper.FSharp](https://github.com/Dzoukr/Dapper.FSharp)
+
 
 <p align="center">
 <img src="https://github.com/Dzoukr/Dapper.FSharp/raw/master/logo.png" width="150px"/>
 </p>
+
+## Differences
+
+Split on:
+
+- [Dapper.FSharp.MySQL](https://github.com/p1eXu5/Dapper.FSharp/pkgs/nuget/Dapper.FSharp.MySQL)
+- [Dapper.FSharp.SQLite](https://github.com/p1eXu5/Dapper.FSharp/pkgs/nuget/Dapper.FSharp.SQLite)
 
 Lightweight F# extension for StackOverflow Dapper with support for MSSQL, MySQL, PostgreSQL and SQLite
 
@@ -22,11 +30,14 @@ Lightweight F# extension for StackOverflow Dapper with support for MSSQL, MySQL,
 ## Installation
 If you want to install this package manually, use usual NuGet package command
 
-    Install-Package Dapper.FSharp
+- [Dapper.FSharp.MySQL](https://github.com/p1eXu5/Dapper.FSharp/pkgs/nuget/Dapper.FSharp.MySQL)
 
-or using [Paket](http://fsprojects.github.io/Paket/getting-started.html)
+  `dotnet add package Dapper.FSharp.MySQL --version 4.8.5`
 
-    paket add Dapper.FSharp
+- [Dapper.FSharp.MySQL](https://github.com/p1eXu5/Dapper.FSharp/pkgs/nuget/Dapper.FSharp.MySQL)
+
+  `dotnet add package Dapper.FSharp.SQLite --version 4.8.5`
+
 
 ## What's new in v4?
 Reasoning behind version 4 is described in [this issue](https://github.com/Dzoukr/Dapper.FSharp/issues/71), but the main changes are:
