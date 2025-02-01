@@ -28,15 +28,18 @@ Lightweight F# extension for StackOverflow Dapper with support for MSSQL, MySQL,
 - Keeps things simple
 
 ## Installation
+
+All forked versions have patch `x.x.51`
+
 If you want to install this package manually, use usual NuGet package command
 
 - [Dapper.FSharp.MySQL](https://github.com/p1eXu5/Dapper.FSharp/pkgs/nuget/Dapper.FSharp.MySQL)
 
-  `dotnet add package Dapper.FSharp.MySQL --version 4.8.5`
+  `dotnet add package Dapper.FSharp.MySQL --version 4.8.51`
 
 - [Dapper.FSharp.MySQL](https://github.com/p1eXu5/Dapper.FSharp/pkgs/nuget/Dapper.FSharp.MySQL)
 
-  `dotnet add package Dapper.FSharp.SQLite --version 4.8.5`
+  `dotnet add package Dapper.FSharp.SQLite --version 4.8.51`
 
 
 ## What's new in v4?
